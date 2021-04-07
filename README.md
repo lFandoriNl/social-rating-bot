@@ -1,0 +1,1 @@
+# Social rating bot
