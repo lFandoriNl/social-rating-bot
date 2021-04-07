@@ -18,8 +18,12 @@ bot.on("text", (ctx) => {
 });
 
 bot.on("sticker", (ctx) => {
-  console.log(ctx.update);
+  const replyToMessage = ctx.update.message.reply_to_message;
+
+  if (!replyToMessage) return null;
+
   const chatId = ctx.update.message.chat.id;
+  const recipientUserId = replyToMessage.from.id;
   const stickerId = ctx.update.message.sticker.file_unique_id;
 
   if (stickerId === sticker.increaseSocialCredit) {
