@@ -72,8 +72,6 @@ bot.on("message", (ctx) => {
   // console.log("message", ctx.update.message);
 
   // @ts-ignore
-  const text = ctx.update.message.text;
-  // @ts-ignore
   const sticker = ctx.update.message.sticker;
   // @ts-ignore
   const replyToMessage = ctx.update.message.reply_to_message;
@@ -81,11 +79,6 @@ bot.on("message", (ctx) => {
   const chatId = ctx.message.chat.id;
   // @ts-ignore
   const chatTitle = ctx.message.chat.title || "Unknown";
-
-  if (text) {
-    if (replyToMessage) {
-    }
-  }
 
   if (sticker) {
     if (replyToMessage) {
