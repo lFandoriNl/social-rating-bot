@@ -69,7 +69,7 @@ bot.command("stat", async (ctx) => {
 });
 
 bot.on("message", (ctx) => {
-  console.log("message", ctx.update.message);
+  // console.log("message", ctx.update.message);
 
   // @ts-ignore
   const text = ctx.update.message.text;
