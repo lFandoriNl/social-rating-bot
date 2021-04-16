@@ -1,10 +1,13 @@
 import { Telegraf } from "telegraf";
 import { socialCreditService } from "./services/social-rating-service";
+import { createQueue } from "./lib/queue";
 import { STICKER } from "./sticker-ids";
 
 require("dotenv").config();
 
 import "./db";
+
+const queue = createQueue();
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -69,52 +72,54 @@ bot.command("stat", async (ctx) => {
 });
 
 bot.on("message", (ctx) => {
-  // console.log("message", ctx.update.message);
+  queue.push(async () => {
+    // console.log("message", ctx.update.message);
 
-  // @ts-ignore
-  const sticker = ctx.update.message.sticker;
-  // @ts-ignore
-  const replyToMessage = ctx.update.message.reply_to_message;
+    // @ts-ignore
+    const sticker = ctx.update.message.sticker;
+    // @ts-ignore
+    const replyToMessage = ctx.update.message.reply_to_message;
 
-  const chatId = ctx.message.chat.id;
-  // @ts-ignore
-  const chatTitle = ctx.message.chat.title || "Unknown";
+    const chatId = ctx.message.chat.id;
+    // @ts-ignore
+    const chatTitle = ctx.message.chat.title || "Unknown";
 
-  if (sticker) {
-    if (replyToMessage) {
-      const stickerId = sticker.file_unique_id;
-      const recipientUserId = replyToMessage.from.id;
-      const userName = `${replyToMessage.from.first_name || ""} ${
-        replyToMessage.from.last_name || ""
-      }`;
+    if (sticker) {
+      if (replyToMessage) {
+        const stickerId = sticker.file_unique_id;
+        const recipientUserId = replyToMessage.from.id;
+        const userName = `${replyToMessage.from.first_name || ""} ${
+          replyToMessage.from.last_name || ""
+        }`;
 
-      if (replyToMessage.from.is_bot) {
-        return;
-      }
+        if (replyToMessage.from.is_bot) {
+          return;
+        }
 
-      if (ctx.message.from.id === recipientUserId) {
-        return ctx.reply("Меня не обдуришь пес");
-      }
+        if (ctx.message.from.id === recipientUserId) {
+          return ctx.reply("Меня не обдуришь пес");
+        }
 
-      if (stickerId === STICKER.increaseSocialCredit) {
-        socialCreditService.increase({
-          chatId,
-          chatName: chatTitle,
-          userId: recipientUserId,
-          userName,
-        });
-      }
+        if (stickerId === STICKER.increaseSocialCredit) {
+          await socialCreditService.increase({
+            chatId,
+            chatName: chatTitle,
+            userId: recipientUserId,
+            userName,
+          });
+        }
 
-      if (stickerId === STICKER.decreaseSocialCredit) {
-        socialCreditService.decrease({
-          chatId,
-          chatName: chatTitle,
-          userId: recipientUserId,
-          userName,
-        });
+        if (stickerId === STICKER.decreaseSocialCredit) {
+          await socialCreditService.decrease({
+            chatId,
+            chatName: chatTitle,
+            userId: recipientUserId,
+            userName,
+          });
+        }
       }
     }
-  }
+  });
 });
 
 bot.launch();
