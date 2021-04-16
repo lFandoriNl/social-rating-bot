@@ -1,17 +1,12 @@
-type Task = () => Promise<unknown> | void;
-type AsyncTask = () => Promise<unknown>;
+type Task = () => Promise<unknown>;
 
 export function createQueue(initialTasks?: Task[]) {
   let isProcessing = false;
 
-  let tasks: AsyncTask[] = [];
-
-  if (initialTasks) {
-    tasks = initialTasks.map((task) => thenable(task));
-  }
+  let tasks: Task[] = initialTasks || [];
 
   function push(task: Task) {
-    tasks.push(thenable(task));
+    tasks.push(task);
 
     if (isProcessing === false) {
       runTask();
@@ -36,13 +31,6 @@ export function createQueue(initialTasks?: Task[]) {
   runTask();
 
   return { push };
-}
-
-function thenable(task: Task) {
-  return () =>
-    new Promise((resolve) => {
-      resolve(task());
-    });
 }
 
 // function createTest(idx, ms) {
