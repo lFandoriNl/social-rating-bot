@@ -75,28 +75,34 @@ bot.on("message", (ctx) => {
   queue.push(async () => {
     // console.log("message", ctx.update.message);
 
+    const message = ctx.update.message;
     // @ts-ignore
-    const sticker = ctx.update.message.sticker;
+    const sticker = message.sticker;
     // @ts-ignore
-    const replyToMessage = ctx.update.message.reply_to_message;
+    const replyToMessage = message.reply_to_message;
 
-    const chatId = ctx.message.chat.id;
+    const chatId = message.chat.id;
+    const chatType = message.chat.type;
     // @ts-ignore
-    const chatTitle = ctx.message.chat.title || "Unknown";
+    const chatTitle = message.chat.title || "Unknown";
 
     if (sticker) {
       if (replyToMessage) {
         const stickerId = sticker.file_unique_id;
         const recipientUserId = replyToMessage.from.id;
+        const replyToMessageId = replyToMessage.message_id;
+        const replyToMessageDate = replyToMessage.date;
         const userName = `${replyToMessage.from.first_name || ""} ${
           replyToMessage.from.last_name || ""
-        }`;
+        }`.trim();
 
-        if (replyToMessage.from.is_bot) {
-          return;
+        if (chatType !== "private") {
+          if (replyToMessage.from.is_bot) {
+            return;
+          }
         }
 
-        if (ctx.message.from.id === recipientUserId) {
+        if (message.from.id === recipientUserId) {
           return ctx.reply("Меня не обдуришь пес");
         }
 
@@ -106,6 +112,7 @@ bot.on("message", (ctx) => {
             chatName: chatTitle,
             userId: recipientUserId,
             userName,
+            replyToMessage: { id: replyToMessageId, date: replyToMessageDate },
           });
         }
 
@@ -115,6 +122,7 @@ bot.on("message", (ctx) => {
             chatName: chatTitle,
             userId: recipientUserId,
             userName,
+            replyToMessage: { id: replyToMessageId, date: replyToMessageDate },
           });
         }
       }

@@ -1,5 +1,6 @@
 import { ChatModel } from "../models/chat-model";
 import { UserModel } from "../models/user-model";
+import { MessageModel } from "../models/message-model";
 import { Chat, User } from "../types";
 
 type AddSocialRating = {
@@ -7,17 +8,72 @@ type AddSocialRating = {
   chatName: Chat["name"];
   userId: User["userId"];
   userName: User["name"];
+  replyToMessage: { id: number; date: number };
 };
 
 class SocialCreditService {
   private async addSocialRating(
-    { chatId, chatName, userId, userName }: AddSocialRating,
+    { chatId, chatName, userId, userName, replyToMessage }: AddSocialRating,
     rating: User["socialCredit"]
   ) {
     try {
       console.log({ chatId, chatName, userId, userName }, rating);
 
-      const chat = await ChatModel.findOne({ chatId });
+      let chat = await ChatModel.findOne({ chatId });
+
+      if (!chat) {
+        chat = new ChatModel({ chatId, name: chatName });
+        await chat.save();
+      }
+
+      const message = await MessageModel.findOne({
+        messageId: replyToMessage.id,
+        chat: chat._id,
+      });
+
+      if (!message) {
+        if (rating > 0) {
+          const newMessage = new MessageModel({
+            messageId: replyToMessage.id,
+            date: replyToMessage.date,
+            increased: true,
+            chat: chat._id,
+          });
+          await newMessage.save();
+        }
+
+        if (rating < 0) {
+          const newMessage = new MessageModel({
+            messageId: replyToMessage.id,
+            date: replyToMessage.date,
+            decreased: true,
+            chat: chat._id,
+          });
+          await newMessage.save();
+        }
+      }
+
+      if (message) {
+        if (rating > 0 && message.increased) {
+          return;
+        }
+
+        if (rating > 0 && message.decreased) {
+          await message.updateOne({
+            increased: true,
+          });
+        }
+
+        if (rating < 0 && message.decreased) {
+          return;
+        }
+
+        if (rating < 0 && message.increased) {
+          await message.updateOne({
+            decreased: true,
+          });
+        }
+      }
 
       if (chat) {
         const user = await UserModel.findOne({ userId, chat: chat._id });
@@ -25,7 +81,6 @@ class SocialCreditService {
         if (user) {
           return await user.updateOne({
             name: userName,
-            // @ts-ignore
             socialCredit: user.socialCredit + rating,
           });
         }
@@ -43,14 +98,14 @@ class SocialCreditService {
       const newChat = new ChatModel({ chatId, name: chatName });
       await newChat.save();
 
-      const newUser = new UserModel({
-        userId,
-        name: userName,
-        socialCredit: rating,
-        level: 0,
-        chat: newChat._id,
-      });
-      await newUser.save();
+      // const newUser = new UserModel({
+      //   userId,
+      //   name: userName,
+      //   socialCredit: rating,
+      //   level: 0,
+      //   chat: newChat._id,
+      // });
+      // await newUser.save();
     } catch (error) {
       console.error(error);
     }

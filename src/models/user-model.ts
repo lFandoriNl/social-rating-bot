@@ -1,5 +1,13 @@
 import * as mongoose from "mongoose";
 
+export interface User extends mongoose.Document {
+  userId: number;
+  name: string;
+  socialCredit: number;
+  level: number;
+  chat: string;
+}
+
 const userSchema = new mongoose.Schema({
   userId: Number,
   name: String,
@@ -11,4 +19,7 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-export const UserModel = mongoose.model("User", userSchema);
+export const UserModel: mongoose.Model<User> = mongoose.model(
+  "User",
+  userSchema
+);
