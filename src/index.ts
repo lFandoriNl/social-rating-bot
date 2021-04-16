@@ -87,8 +87,23 @@ bot.on("message", (ctx) => {
     const chatTitle = message.chat.title || "Unknown";
 
     if (sticker) {
+      const stickerId = sticker.file_unique_id;
+
+      if (
+        [STICKER.increaseSocialCredit, STICKER.decreaseSocialCredit].includes(
+          stickerId
+        )
+      ) {
+        setTimeout(async () => {
+          try {
+            await ctx.deleteMessage(message.message_id);
+          } catch (error) {
+            console.error(error);
+          }
+        }, 5 * 60 * 1000);
+      }
+
       if (replyToMessage) {
-        const stickerId = sticker.file_unique_id;
         const recipientUserId = replyToMessage.from.id;
         const replyToMessageId = replyToMessage.message_id;
         const replyToMessageDate = replyToMessage.date;
@@ -112,7 +127,10 @@ bot.on("message", (ctx) => {
             chatName: chatTitle,
             userId: recipientUserId,
             userName,
-            replyToMessage: { id: replyToMessageId, date: replyToMessageDate },
+            replyToMessage: {
+              id: replyToMessageId,
+              date: replyToMessageDate,
+            },
           });
         }
 
@@ -122,7 +140,10 @@ bot.on("message", (ctx) => {
             chatName: chatTitle,
             userId: recipientUserId,
             userName,
-            replyToMessage: { id: replyToMessageId, date: replyToMessageDate },
+            replyToMessage: {
+              id: replyToMessageId,
+              date: replyToMessageDate,
+            },
           });
         }
       }
