@@ -1,12 +1,12 @@
 import { createEffect } from "effector";
-import { chatApi } from "../chat/chat-service";
+import { chatRepository } from "../../repositories/chat-repository";
 import { AddSocialRating } from "../types";
 
 const increaseSocialCreditFx = createEffect<AddSocialRating, void>();
 const decreaseSocialCreditFx = createEffect<AddSocialRating, void>();
 
 increaseSocialCreditFx.use(async (data) => {
-  const chat = await chatApi.getChatByIdOrCreateFx(data.chat);
+  const chat = await chatRepository.getChatByIdOrCreateFx(data.chat);
 });
 
 decreaseSocialCreditFx.use(async (data) => {});

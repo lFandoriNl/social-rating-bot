@@ -32,3 +32,5 @@ export const messageReplyStickerSocial = messageStickerSocial.filterMap(
     }
   }
 );
+
+export const messageSocialToUser = createEvent<TG["message"]>();

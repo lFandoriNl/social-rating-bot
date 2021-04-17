@@ -1,7 +1,7 @@
 import { createEffect } from "effector";
 
-import { ChatModel, Chat } from "../../models/chat-model";
-import { ChatRequest } from "../types";
+import { ChatModel, Chat } from "../models/chat-model";
+import { ChatRequest } from "../services/types";
 
 const createChatFx = createEffect<ChatRequest, Chat>();
 const getChatByIdFx = createEffect<ChatRequest, Chat | null>();
@@ -28,7 +28,7 @@ getChatByIdOrCreateFx.use(async (data) => {
   return await createChatFx(data);
 });
 
-export const chatApi = {
+export const chatRepository = {
   createChatFx,
   getChatByIdFx,
   getChatByIdOrCreateFx,

@@ -1,13 +1,14 @@
 require("dotenv").config();
 
 import { bot } from "./bot";
-import { socialCreditService } from "./services/social-rating-service";
+import { socialCreditService } from "./services/legacy-social-rating-service";
 import { app } from "./services/app/api";
 import { createQueue } from "./lib/queue";
 import { STICKER } from "./sticker-ids";
 
-import { messageEvent } from "./services/app/message-events";
+import { messageEvent } from "./services/message";
 
+import "./init";
 import "./db";
 
 const queue = createQueue();
