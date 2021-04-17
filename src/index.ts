@@ -5,6 +5,7 @@ import { allSettled, fork, root } from "effector-root";
 import { socialCredit } from "./services/social-credit";
 import { createQueue } from "./lib/queue";
 
+import { commandRateEvent, commandUnRateEvent } from "./services/command-rate";
 import { messageEvent } from "./services/message";
 
 import { bot } from "./bot";
@@ -18,8 +19,18 @@ const queue = createQueue();
 
 const scope = fork(root);
 
+const commands = [
+  { command: "rate", description: "Повысить рейтинг" },
+  { command: "unrate", description: "Понизить рейтинг" },
+  { command: "stat", description: "Показать пищевую цепочку" },
+  // { command: "roll_dice", description: "Подбросить кубик" },
+  { command: "help", description: "Что я могу" },
+];
+
+bot.telegram.setMyCommands(commands);
+
 bot.command("start", (ctx) => {
-  ctx.telegram.sendMessage(ctx.chat.id, "Встаю на службу мой милорд!");
+  ctx.reply("Встаю на службу мой милорд!");
 });
 
 bot.command("quit", (ctx) => {
@@ -27,11 +38,15 @@ bot.command("quit", (ctx) => {
 });
 
 bot.help((ctx) => {
-  ctx.reply(`
-  Я Надзиратель, я слежу за вашим рейтингом 
-Список моих команд:
-/stat - показать пищевую цепочку
-  `);
+  const help = [
+    "Я Надзиратель, я слежу за вашим рейтингом",
+    "Список моих команд:",
+    ...commands
+      // .slice(0, -1)
+      .map(({ command, description }) => `/${command} - ${description}`),
+  ].join("\n");
+
+  ctx.reply(help);
 });
 
 bot.command("stat", async (ctx) => {
@@ -64,6 +79,22 @@ bot.command("stat", async (ctx) => {
     .join("\n");
 
   ctx.reply(`Рейтинг пищевой цепочки:\n${usersList}`);
+});
+
+bot.command("rate", (ctx) => {
+  // ctx.replyWithSticker(STICKER_FILE.increaseSocialCredit);
+  // ctx.replyWithLocation(25, 24);
+
+  queue.push(async () => {
+    await allSettled(commandRateEvent, { scope, params: ctx.update.message });
+  });
+});
+
+bot.command("unrate", (ctx) => {
+  // ctx.replyWithSticker(STICKER_FILE.decreaseSocialCredit);
+  queue.push(async () => {
+    await allSettled(commandUnRateEvent, { scope, params: ctx.update.message });
+  });
 });
 
 bot.on("message", (ctx) => {

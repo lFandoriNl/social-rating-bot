@@ -1,4 +1,4 @@
-import { forward, guard, sample, split } from "effector-root";
+import { forward, guard, split, merge } from "effector-root";
 
 import {
   removeMessageAfterTimeoutFx,
@@ -12,20 +12,24 @@ import {
 
 import { socialCredit } from "../social-credit";
 
-import { STICKER } from "../../sticker-ids";
-import { TG, AddSocialRating } from "../types";
+import { AddSocialRating, MessageRating } from "../types";
+import { commandRateReply, commandUnRateReply } from "../command-rate";
 
 forward({
   from: messageStickerSocial,
-  to: removeMessageAfterTimeoutFx.prepend((message) => ({
+  to: removeMessageAfterTimeoutFx.prepend(({ message }) => ({
     message,
     ms: 5 * 60 * 1000,
   })),
 });
 
 const messageToUser = guard({
-  source: messageReplyStickerSocial,
-  filter: (message) => {
+  source: merge([
+    messageReplyStickerSocial,
+    commandRateReply,
+    commandUnRateReply,
+  ]),
+  filter: ({ message }) => {
     // console.log(message);
     if (message.chat.type !== "private") {
       // @ts-ignore
@@ -40,7 +44,7 @@ const messageToUser = guard({
 
 split({
   source: messageToUser,
-  match: (message: TG["message"]) => {
+  match: ({ message }: MessageRating) => {
     // @ts-ignore
     const recipientUserId = message.reply_to_message.from.id;
 
@@ -51,43 +55,43 @@ split({
     return "messageSocialToUser";
   },
   cases: {
-    messageSocialToSelf: replyToMessageFx.prepend((message: TG["message"]) => ({
-      message,
-      text: "Меня не обдуришь пес",
-    })),
+    messageSocialToSelf: replyToMessageFx.prepend(
+      ({ message }: MessageRating) => ({
+        message,
+        text: "Меня не обдуришь пес",
+      })
+    ),
     messageSocialToUser,
   },
 });
 
 split({
-  source: messageSocialToUser.map<AddSocialRating>((message) => {
-    // @ts-ignore
-    const stickerId = message.sticker.file_unique_id;
+  source: messageSocialToUser.map<AddSocialRating>(
+    ({ type, message }: MessageRating) => {
+      //@ts-ignore
+      const replyToMessage = message.reply_to_message;
 
-    //@ts-ignore
-    const replyToMessage = message.reply_to_message;
+      const userName = `${replyToMessage.from.first_name || ""} ${
+        replyToMessage.from.last_name || ""
+      }`.trim();
 
-    const userName = `${replyToMessage.from.first_name || ""} ${
-      replyToMessage.from.last_name || ""
-    }`.trim();
-
-    return {
-      type:
-        STICKER.increaseSocialCredit === stickerId ? "increase" : "decrease",
-      chat: {
-        id: message.chat.id,
-        name: message.chat.type || "Private",
-      },
-      user: {
-        id: replyToMessage.from.id,
-        name: userName,
-      },
-      replyToMessage: {
-        id: replyToMessage.message_id,
-        date: replyToMessage.date,
-      },
-    };
-  }),
+      return {
+        type,
+        chat: {
+          id: message.chat.id,
+          name: message.chat.type || "Private",
+        },
+        user: {
+          id: replyToMessage.from.id,
+          name: userName,
+        },
+        replyToMessage: {
+          id: replyToMessage.message_id,
+          date: replyToMessage.date,
+        },
+      };
+    }
+  ),
   match: (data: AddSocialRating) => data.type,
   cases: {
     increase: socialCredit.increase,

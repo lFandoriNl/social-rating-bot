@@ -1,9 +1,10 @@
 import { createEvent } from "effector-root";
 
 import { STICKER } from "../../sticker-ids";
-import { TG } from "../types";
+import { MessageRating, TG } from "../types";
 
 export const messageEvent = createEvent<TG["message"]>();
+
 export const messageSticker = messageEvent.filterMap((message) => {
   // @ts-ignore
   if (message.sticker) {
@@ -11,26 +12,32 @@ export const messageSticker = messageEvent.filterMap((message) => {
   }
 });
 
-export const messageStickerSocial = messageSticker.filterMap((message) => {
-  // @ts-ignore
-  const stickerId = message.sticker.file_unique_id;
-
-  if (
-    [STICKER.increaseSocialCredit, STICKER.decreaseSocialCredit].includes(
-      stickerId
-    )
-  ) {
-    return message;
-  }
-});
-
-export const messageReplyStickerSocial = messageStickerSocial.filterMap(
+export const messageStickerSocial = messageSticker.filterMap<MessageRating>(
   (message) => {
     // @ts-ignore
-    if (message.reply_to_message) {
-      return message;
+    const stickerId = message.sticker.file_unique_id;
+
+    if (
+      [STICKER.increaseSocialCredit, STICKER.decreaseSocialCredit].includes(
+        stickerId
+      )
+    ) {
+      return {
+        type:
+          STICKER.increaseSocialCredit === stickerId ? "increase" : "decrease",
+        message,
+      };
     }
   }
 );
 
-export const messageSocialToUser = createEvent<TG["message"]>();
+export const messageReplyStickerSocial = messageStickerSocial.filterMap(
+  (messageRating) => {
+    // @ts-ignore
+    if (messageRating.message.reply_to_message) {
+      return messageRating;
+    }
+  }
+);
+
+export const messageSocialToUser = createEvent<MessageRating>();
