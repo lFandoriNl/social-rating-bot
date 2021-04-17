@@ -4,6 +4,7 @@ import { allSettled, fork, root } from "effector-root";
 
 import { socialCredit } from "./services/social-credit";
 import { createQueue } from "./lib/queue";
+import { randomRange } from "./lib/random";
 
 import { commandRateEvent, commandUnRateEvent } from "./services/command-rate";
 import { messageEvent } from "./services/message";
@@ -23,7 +24,7 @@ const commands = [
   { command: "rate", description: "Повысить рейтинг" },
   { command: "unrate", description: "Понизить рейтинг" },
   { command: "stat", description: "Показать пищевую цепочку" },
-  // { command: "roll_dice", description: "Подбросить кубик" },
+  { command: "roll", description: "Испытать удачу" },
   { command: "help", description: "Что я могу" },
 ];
 
@@ -81,17 +82,22 @@ bot.command("stat", async (ctx) => {
   ctx.reply(`Рейтинг пищевой цепочки:\n${usersList}`);
 });
 
-bot.command("rate", (ctx) => {
-  // ctx.replyWithSticker(STICKER_FILE.increaseSocialCredit);
-  // ctx.replyWithLocation(25, 24);
+bot.command("roll", (ctx) => {
+  const variant = ["🎲", "🎯", "🏀", "🎳", "🎰"];
 
+  ctx.telegram.sendDice(ctx.chat.id, {
+    emoji: variant[randomRange(0, variant.length)],
+    reply_to_message_id: ctx.message.message_id,
+  });
+});
+
+bot.command("rate", (ctx) => {
   queue.push(async () => {
     await allSettled(commandRateEvent, { scope, params: ctx.update.message });
   });
 });
 
 bot.command("unrate", (ctx) => {
-  // ctx.replyWithSticker(STICKER_FILE.decreaseSocialCredit);
   queue.push(async () => {
     await allSettled(commandUnRateEvent, { scope, params: ctx.update.message });
   });
