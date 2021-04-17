@@ -1,6 +1,4 @@
-import { createEvent, forward } from "effector";
-
-import { removeMessageAfterTimeoutFx } from "./remove-message";
+import { createEvent } from "effector";
 
 import { STICKER } from "../../sticker-ids";
 import { TG } from "../types";
