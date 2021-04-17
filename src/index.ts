@@ -24,7 +24,7 @@ const commands = [
   { command: "rate", description: "Повысить рейтинг" },
   { command: "unrate", description: "Понизить рейтинг" },
   { command: "stat", description: "Показать пищевую цепочку" },
-  { command: "roll", description: "Испытать удачу" },
+  { command: "roll_dice", description: "Испытать удачу" },
   { command: "help", description: "Что я могу" },
 ];
 
@@ -81,7 +81,7 @@ bot.command("stat", async (ctx) => {
   ctx.reply(`Рейтинг пищевой цепочки:\n${usersList}`);
 });
 
-bot.command("roll", (ctx) => {
+bot.command("roll_dice", (ctx) => {
   const variant = ["🎲", "🎯", "🏀", "🎳", "🎰"];
 
   ctx.telegram.sendDice(ctx.chat.id, {
