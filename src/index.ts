@@ -2,7 +2,7 @@ require("dotenv").config();
 
 import { bot } from "./bot";
 import { socialCreditService } from "./services/legacy-social-rating-service";
-import { app } from "./services/app/api";
+import { socialCredit } from "./services/social-credit";
 import { createQueue } from "./lib/queue";
 import { STICKER } from "./sticker-ids";
 
@@ -75,101 +75,7 @@ bot.command("stat", async (ctx) => {
 
 bot.on("message", (ctx) => {
   queue.push(async () => {
-    // console.log("message", ctx.update.message);
-
     messageEvent(ctx.update.message);
-
-    const message = ctx.update.message;
-    // @ts-ignore
-    const sticker = message.sticker;
-    // @ts-ignore
-    const replyToMessage = message.reply_to_message;
-
-    const chatId = message.chat.id;
-    const chatType = message.chat.type;
-    // @ts-ignore
-    const chatTitle = message.chat.title || "Private";
-
-    if (sticker) {
-      const stickerId = sticker.file_unique_id;
-
-      if (
-        [STICKER.increaseSocialCredit, STICKER.decreaseSocialCredit].includes(
-          stickerId
-        )
-      ) {
-        setTimeout(async () => {
-          try {
-            await ctx.deleteMessage(message.message_id);
-          } catch (error) {
-            console.error(error);
-          }
-        }, 5 * 60 * 1000);
-      }
-
-      if (replyToMessage) {
-        const recipientUserId = replyToMessage.from.id;
-        const replyToMessageId = replyToMessage.message_id;
-        const replyToMessageDate = replyToMessage.date;
-        const userName = `${replyToMessage.from.first_name || ""} ${
-          replyToMessage.from.last_name || ""
-        }`.trim();
-
-        if (chatType !== "private") {
-          if (replyToMessage.from.is_bot) {
-            return;
-          }
-        }
-
-        if (message.from.id === recipientUserId) {
-          return ctx.reply("Меня не обдуришь пес");
-        }
-
-        if (stickerId === STICKER.increaseSocialCredit) {
-          await app.increaseSocialCreditFx({
-            chat: { id: chatId, name: chatTitle },
-            user: { id: recipientUserId, name: userName },
-            replyToMessage: {
-              id: replyToMessageId,
-              date: replyToMessageDate,
-            },
-          });
-
-          // await socialCreditService.increase({
-          //   chatId,
-          //   chatName: chatTitle,
-          //   userId: recipientUserId,
-          //   userName,
-          //   replyToMessage: {
-          //     id: replyToMessageId,
-          //     date: replyToMessageDate,
-          //   },
-          // });
-        }
-
-        if (stickerId === STICKER.decreaseSocialCredit) {
-          await app.increaseSocialCreditFx({
-            chat: { id: chatId, name: chatTitle },
-            user: { id: recipientUserId, name: userName },
-            replyToMessage: {
-              id: replyToMessageId,
-              date: replyToMessageDate,
-            },
-          });
-
-          // await socialCreditService.decrease({
-          //   chatId,
-          //   chatName: chatTitle,
-          //   userId: recipientUserId,
-          //   userName,
-          //   replyToMessage: {
-          //     id: replyToMessageId,
-          //     date: replyToMessageDate,
-          //   },
-          // });
-        }
-      }
-    }
   });
 });
 

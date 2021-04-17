@@ -1,4 +1,4 @@
-import { forward, guard, split } from "effector";
+import { forward, guard, sample, split } from "effector";
 
 import {
   removeMessageAfterTimeoutFx,
@@ -10,7 +10,10 @@ import {
   messageSocialToUser,
 } from "./index";
 
-import { TG } from "../types";
+import { socialCredit } from "../social-credit";
+
+import { STICKER } from "../../sticker-ids";
+import { TG, AddSocialRating } from "../types";
 
 forward({
   from: messageStickerSocial,
@@ -20,9 +23,10 @@ forward({
   })),
 });
 
-const messageNotToBot = guard({
+const messageToUser = guard({
   source: messageReplyStickerSocial,
   filter: (message) => {
+    // console.log(message);
     if (message.chat.type !== "private") {
       // @ts-ignore
       if (message.reply_to_message.from.is_bot) {
@@ -35,12 +39,11 @@ const messageNotToBot = guard({
 });
 
 split({
-  source: messageNotToBot,
-  // source: messageReplyStickerSocial,
+  source: messageToUser,
   match: (message: TG["message"]) => {
     // @ts-ignore
     const recipientUserId = message.reply_to_message.from.id;
-    console.log(message.from.id, recipientUserId);
+
     if (message.from.id === recipientUserId) {
       return "messageSocialToSelf";
     }
@@ -53,5 +56,41 @@ split({
       text: "Меня не обдуришь пес",
     })),
     messageSocialToUser,
+  },
+});
+
+split({
+  source: messageSocialToUser.map<AddSocialRating>((message) => {
+    // @ts-ignore
+    const stickerId = message.sticker.file_unique_id;
+
+    //@ts-ignore
+    const replyToMessage = message.reply_to_message;
+
+    const userName = `${replyToMessage.from.first_name || ""} ${
+      replyToMessage.from.last_name || ""
+    }`.trim();
+
+    return {
+      type:
+        STICKER.increaseSocialCredit === stickerId ? "increase" : "decrease",
+      chat: {
+        id: message.chat.id,
+        name: message.chat.type || "Private",
+      },
+      user: {
+        id: replyToMessage.from.id,
+        name: userName,
+      },
+      replyToMessage: {
+        id: replyToMessage.message_id,
+        date: replyToMessage.date,
+      },
+    };
+  }),
+  match: (data: AddSocialRating) => data.type,
+  cases: {
+    increase: socialCredit.increase,
+    decrease: socialCredit.decrease,
   },
 });

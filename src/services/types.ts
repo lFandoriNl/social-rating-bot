@@ -6,9 +6,11 @@ export type TG = {
 
 export type ChatRequest = { id: number; name: string };
 export type UserRequest = { id: number; name: string };
+export type MessageRequest = { id: number; date: number };
 
 export type AddSocialRating = {
+  type: "increase" | "decrease";
   chat: ChatRequest;
   user: UserRequest;
-  replyToMessage: { id: number; date: number };
+  replyToMessage: MessageRequest;
 };
