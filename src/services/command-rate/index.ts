@@ -1,4 +1,4 @@
-import { createEvent } from "effector-root";
+import { createEvent, merge } from "effector-root";
 
 import { MessageRating, TG } from "../types";
 
@@ -22,3 +22,11 @@ export const commandUnRateReply = commandUnRateEvent.filterMap<MessageRating>(
     }
   }
 );
+
+export const commandRateNoReply = merge([
+  commandRateEvent,
+  commandUnRateEvent,
+]).filter({
+  // @ts-ignore
+  fn: (message) => !Boolean(message.reply_to_message),
+});

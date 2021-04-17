@@ -5,11 +5,9 @@ import { MessageRating, TG } from "../types";
 
 export const messageEvent = createEvent<TG["message"]>();
 
-export const messageSticker = messageEvent.filterMap((message) => {
+export const messageSticker = messageEvent.filter({
   // @ts-ignore
-  if (message.sticker) {
-    return message;
-  }
+  fn: (message) => Boolean(message.sticker),
 });
 
 export const messageStickerSocial = messageSticker.filterMap<MessageRating>(
@@ -31,13 +29,14 @@ export const messageStickerSocial = messageSticker.filterMap<MessageRating>(
   }
 );
 
-export const messageReplyStickerSocial = messageStickerSocial.filterMap(
-  (messageRating) => {
-    // @ts-ignore
-    if (messageRating.message.reply_to_message) {
-      return messageRating;
-    }
-  }
-);
+export const messageReplyStickerSocial = messageStickerSocial.filter({
+  // @ts-ignore
+  fn: (messageRating) => Boolean(messageRating.message.reply_to_message),
+});
+
+export const messageNoReplyStickerSocial = messageStickerSocial.filter({
+  // @ts-ignore
+  fn: (messageRating) => !Boolean(messageRating.message.reply_to_message),
+});
 
 export const messageSocialToUser = createEvent<MessageRating>();

@@ -2,24 +2,38 @@ import { forward, guard, split, merge } from "effector-root";
 
 import {
   removeMessageAfterTimeoutFx,
+  removeMessageFx,
   replyToMessageFx,
 } from "../message-action";
 import {
   messageStickerSocial,
   messageReplyStickerSocial,
+  messageNoReplyStickerSocial,
   messageSocialToUser,
 } from "./index";
 
 import { socialCredit } from "../social-credit";
 
 import { AddSocialRating, MessageRating } from "../types";
-import { commandRateReply, commandUnRateReply } from "../command-rate";
+import {
+  commandRateReply,
+  commandUnRateReply,
+  commandRateNoReply,
+} from "../command-rate";
 
 forward({
-  from: messageStickerSocial,
+  from: merge([
+    messageNoReplyStickerSocial,
+    commandRateNoReply.map((message) => ({ message })),
+  ]),
+  to: removeMessageFx.prepend(({ message }) => message),
+});
+
+forward({
+  from: merge([messageStickerSocial, commandRateReply, commandUnRateReply]),
   to: removeMessageAfterTimeoutFx.prepend(({ message }) => ({
     message,
-    ms: 5 * 60 * 1000,
+    ms: 3 * 60 * 1000,
   })),
 });
 
