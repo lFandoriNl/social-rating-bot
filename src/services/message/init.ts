@@ -19,7 +19,7 @@ forward({
   from: messageStickerSocial,
   to: removeMessageAfterTimeoutFx.prepend((message) => ({
     message,
-    ms: 5 * 60 * 100,
+    ms: 5 * 60 * 1000,
   })),
 });
 

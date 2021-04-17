@@ -4,8 +4,8 @@ import { ChatModel, Chat } from "../models/chat-model";
 import { ChatRequest } from "../services/types";
 
 const createChatFx = createEffect<ChatRequest, Chat>();
-const getChatByIdFx = createEffect<ChatRequest, Chat | null>();
-const getChatByIdOrCreateFx = createEffect<ChatRequest, Chat | null>();
+const getChatByIdFx = createEffect<number, Chat | null>();
+const getChatByIdOrCreateFx = createEffect<ChatRequest, Chat>();
 
 createChatFx.use(async (data) => {
   const chat = new ChatModel({ chatId: data.id, name: data.name });
@@ -14,14 +14,14 @@ createChatFx.use(async (data) => {
   return chat;
 });
 
-getChatByIdFx.use(async (data) => {
-  const chat = await ChatModel.findOne({ chatId: data.id });
+getChatByIdFx.use(async (chatId) => {
+  const chat = await ChatModel.findOne({ chatId });
 
   return chat;
 });
 
 getChatByIdOrCreateFx.use(async (data) => {
-  const chat = await getChatByIdFx(data);
+  const chat = await getChatByIdFx(data.id);
 
   if (chat) return chat;
 
