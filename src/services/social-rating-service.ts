@@ -1,3 +1,5 @@
+import { createEvent } from "effector";
+
 import { ChatModel } from "../models/chat-model";
 import { UserModel } from "../models/user-model";
 import { MessageModel } from "../models/message-model";
@@ -142,6 +144,3 @@ class SocialCreditService {
 }
 
 export const socialCreditService = new SocialCreditService();
-
-// fandorin
-// tf6pgZ8nNxys7Dz
