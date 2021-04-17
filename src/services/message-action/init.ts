@@ -9,14 +9,32 @@ import { bot } from "../../bot";
 removeMessageFx.use(async (message) => {
   await bot.telegram.deleteMessage(message.chat.id, message.message_id);
 });
-removeMessageFx.failData.watch(console.error);
+removeMessageFx.failData.watch((error) => {
+  console.error(error.message);
+});
 
 removeMessageAfterTimeoutFx.use(async ({ message, ms }) => {
-  setTimeout(async () => {
-    await removeMessageFx(message);
-  }, ms);
+  const removeMessageAfterTimeout = async () =>
+    new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        try {
+          resolve(
+            await bot.telegram.deleteMessage(
+              message.chat.id,
+              message.message_id
+            )
+          );
+        } catch (error) {
+          reject(error);
+        }
+      }, ms);
+    });
+
+  await removeMessageAfterTimeout();
 });
-removeMessageAfterTimeoutFx.failData.watch(console.error);
+removeMessageAfterTimeoutFx.failData.watch((error) => {
+  console.error(error.message);
+});
 
 replyToMessageFx.use(async ({ message, text }) => {
   bot.telegram.sendMessage(message.chat.id, text, {

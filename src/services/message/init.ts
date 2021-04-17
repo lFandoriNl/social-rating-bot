@@ -30,7 +30,11 @@ forward({
 });
 
 forward({
-  from: merge([messageStickerSocial, commandRateReply, commandUnRateReply]),
+  from: merge([
+    messageReplyStickerSocial,
+    commandRateReply,
+    commandUnRateReply,
+  ]),
   to: removeMessageAfterTimeoutFx.prepend(({ message }) => ({
     message,
     ms: 3 * 60 * 1000,
