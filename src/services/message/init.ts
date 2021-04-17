@@ -1,4 +1,4 @@
-import { forward, guard, sample, split } from "effector";
+import { forward, guard, sample, split } from "effector-root";
 
 import {
   removeMessageAfterTimeoutFx,

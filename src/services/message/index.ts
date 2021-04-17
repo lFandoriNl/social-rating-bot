@@ -1,4 +1,4 @@
-import { createEvent } from "effector";
+import { createEvent } from "effector-root";
 
 import { STICKER } from "../../sticker-ids";
 import { TG } from "../types";

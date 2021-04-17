@@ -1,4 +1,4 @@
-import { createEffect } from "effector";
+import { createEffect } from "effector-root";
 
 import { TG } from "../types";
 

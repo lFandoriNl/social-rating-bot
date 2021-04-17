@@ -4,7 +4,7 @@ import {
   createStore,
   forward,
   guard,
-} from "effector";
+} from "effector-root";
 
 // const currentTask = guard({
 //   source: combine(

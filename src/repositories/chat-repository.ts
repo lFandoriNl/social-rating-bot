@@ -1,4 +1,4 @@
-import { createEffect } from "effector";
+import { createEffect } from "effector-root";
 
 import { ChatModel, Chat } from "../models/chat-model";
 import { ChatRequest } from "../services/types";

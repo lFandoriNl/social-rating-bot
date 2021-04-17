@@ -1,4 +1,4 @@
-import { createEvent, createEffect } from "effector";
+import { createEvent, createEffect } from "effector-root";
 
 import { AddSocialRating } from "../types";
 

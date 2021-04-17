@@ -1,4 +1,4 @@
-import { createEffect, forward } from "effector";
+import { forward } from "effector-root";
 import { chatRepository } from "../../repositories/chat-repository";
 import { socialCredit, addRatingFx } from "./index";
 
