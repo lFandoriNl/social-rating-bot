@@ -42,9 +42,9 @@ bot.help((ctx) => {
   const help = [
     "Я Надзиратель, я слежу за вашим рейтингом",
     "Список моих команд:",
-    ...commands
-      // .slice(0, -1)
-      .map(({ command, description }) => `/${command} - ${description}`),
+    ...commands.map(
+      ({ command, description }) => `/${command} - ${description}`
+    ),
   ].join("\n");
 
   ctx.reply(help);
@@ -67,7 +67,6 @@ bot.command("stat", async (ctx) => {
 
   const usersList = users
     .map((user, index) => {
-      // const start = `${index + 1}. ${user.name}`.padEnd(35, "\t");
       const start = `${index + 1}.`;
       const end = `${user.socialCredit}`.padEnd(10, " ");
 

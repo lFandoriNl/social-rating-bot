@@ -48,7 +48,6 @@ const messageToUser = guard({
     commandUnRateReply,
   ]),
   filter: ({ message }) => {
-    // console.log(message);
     if (message.chat.type !== "private") {
       // @ts-ignore
       if (message.reply_to_message.from.is_bot) {
