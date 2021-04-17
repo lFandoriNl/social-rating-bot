@@ -13,4 +13,7 @@ const chatSchema = new mongoose.Schema({
   users: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
-export const ChatModel = mongoose.model("Chat", chatSchema);
+export const ChatModel: mongoose.Model<Chat> = mongoose.model(
+  "Chat",
+  chatSchema
+);

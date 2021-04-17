@@ -1,15 +1,16 @@
-import { Telegraf } from "telegraf";
+require("dotenv").config();
+
+import { bot } from "./bot";
 import { socialCreditService } from "./services/social-rating-service";
+import { app } from "./services/app/api";
 import { createQueue } from "./lib/queue";
 import { STICKER } from "./sticker-ids";
 
-require("dotenv").config();
+import { messageEvent } from "./services/app/message-events";
 
 import "./db";
 
 const queue = createQueue();
-
-const bot = new Telegraf(process.env.BOT_TOKEN);
 
 bot.command("start", (ctx) => {
   ctx.telegram.sendMessage(ctx.chat.id, "Встаю на службу мой милорд!");
@@ -75,6 +76,8 @@ bot.on("message", (ctx) => {
   queue.push(async () => {
     // console.log("message", ctx.update.message);
 
+    messageEvent(ctx.update.message);
+
     const message = ctx.update.message;
     // @ts-ignore
     const sticker = message.sticker;
@@ -84,7 +87,7 @@ bot.on("message", (ctx) => {
     const chatId = message.chat.id;
     const chatType = message.chat.type;
     // @ts-ignore
-    const chatTitle = message.chat.title || "Unknown";
+    const chatTitle = message.chat.title || "Private";
 
     if (sticker) {
       const stickerId = sticker.file_unique_id;
@@ -122,29 +125,47 @@ bot.on("message", (ctx) => {
         }
 
         if (stickerId === STICKER.increaseSocialCredit) {
-          await socialCreditService.increase({
-            chatId,
-            chatName: chatTitle,
-            userId: recipientUserId,
-            userName,
+          await app.increaseSocialCreditFx({
+            chat: { id: chatId, name: chatTitle },
+            user: { id: recipientUserId, name: userName },
             replyToMessage: {
               id: replyToMessageId,
               date: replyToMessageDate,
             },
           });
+
+          // await socialCreditService.increase({
+          //   chatId,
+          //   chatName: chatTitle,
+          //   userId: recipientUserId,
+          //   userName,
+          //   replyToMessage: {
+          //     id: replyToMessageId,
+          //     date: replyToMessageDate,
+          //   },
+          // });
         }
 
         if (stickerId === STICKER.decreaseSocialCredit) {
-          await socialCreditService.decrease({
-            chatId,
-            chatName: chatTitle,
-            userId: recipientUserId,
-            userName,
+          await app.increaseSocialCreditFx({
+            chat: { id: chatId, name: chatTitle },
+            user: { id: recipientUserId, name: userName },
             replyToMessage: {
               id: replyToMessageId,
               date: replyToMessageDate,
             },
           });
+
+          // await socialCreditService.decrease({
+          //   chatId,
+          //   chatName: chatTitle,
+          //   userId: recipientUserId,
+          //   userName,
+          //   replyToMessage: {
+          //     id: replyToMessageId,
+          //     date: replyToMessageDate,
+          //   },
+          // });
         }
       }
     }

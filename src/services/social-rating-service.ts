@@ -1,22 +1,19 @@
-import { createEvent } from "effector";
-
 import { ChatModel } from "../models/chat-model";
-import { UserModel } from "../models/user-model";
+import { UserModel, User } from "../models/user-model";
 import { MessageModel } from "../models/message-model";
-import { Chat, User } from "../types";
 
 type AddSocialRating = {
-  chatId: Chat["chatId"];
-  chatName: Chat["name"];
-  userId: User["userId"];
-  userName: User["name"];
+  chatId: number;
+  chatName: string;
+  userId: number;
+  userName: string;
   replyToMessage: { id: number; date: number };
 };
 
 class SocialCreditService {
   private async addSocialRating(
     { chatId, chatName, userId, userName, replyToMessage }: AddSocialRating,
-    rating: User["socialCredit"]
+    rating: number
   ) {
     try {
       console.log({ chatId, chatName, userId, userName }, rating);
@@ -123,7 +120,7 @@ class SocialCreditService {
     await this.addSocialRating(data, rating);
   }
 
-  async getTopUsersByRating(chatId: Chat["chatId"]): Promise<User[] | null> {
+  async getTopUsersByRating(chatId: number): Promise<User[] | null> {
     try {
       const chat = await ChatModel.findOne({ chatId });
 
@@ -134,7 +131,7 @@ class SocialCreditService {
       const users = await UserModel.find({ chat: chat._id }).sort({
         socialCredit: "desc",
       });
-      // @ts-ignore
+
       return users;
     } catch (error) {
       console.log(error);

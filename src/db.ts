@@ -1,5 +1,9 @@
 import * as mongoose from "mongoose";
 
+if (!process.env.MONGO_DB) {
+  throw new Error("MONGO_DB is not exist");
+}
+
 mongoose.connect(process.env.MONGO_DB, {
   useNewUrlParser: true,
   useUnifiedTopology: true,

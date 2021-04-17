@@ -3,9 +3,7 @@ import {
   createEffect,
   createStore,
   forward,
-  sample,
   guard,
-  combine,
 } from "effector";
 
 // const currentTask = guard({
