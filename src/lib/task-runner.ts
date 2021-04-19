@@ -4,7 +4,7 @@ type Task<T> = {
   id: number;
   key: T;
   data: any;
-  nodeTimer: number;
+  timer: number;
   time: number;
   startTime: number;
 };
@@ -19,13 +19,13 @@ let taskId = 0;
 
 function creatTask<T>(key: T, fn: Function, data: any, ms: number) {
   const startTime = Date.now();
-  const nodeTimer = setTimeout(fn, ms, data);
+  const timer = setTimeout(fn, ms, data);
 
   return {
     id: ++taskId,
     key,
     data,
-    nodeTimer,
+    timer,
     time: ms,
     startTime,
   };
@@ -66,7 +66,7 @@ export function createTaskRunner<T extends string>({
   const remove = (id: number) => {
     tasks = tasks.filter((task) => {
       if (task.id === id) {
-        clearTimeout(task.nodeTimer);
+        clearTimeout(task.timer);
         return false;
       }
 
@@ -79,7 +79,7 @@ export function createTaskRunner<T extends string>({
       const savedTasks: SavedTask<T>[] = tasks
         .filter((task) => {
           // @ts-ignore
-          return task.nodeTimer._destroyed === false;
+          return task.timer._destroyed === false;
         })
         .map(({ key, data, time, startTime }) => {
           const timeLeft = Math.abs(Date.now() - startTime - time);
