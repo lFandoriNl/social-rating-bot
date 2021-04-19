@@ -94,7 +94,7 @@ export function createTaskRunner<T extends string>({
       const raw = JSON.stringify(savedTasks, null, 2);
       await fs.writeFile(filepath, raw, "utf8");
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
