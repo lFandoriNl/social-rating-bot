@@ -1,6 +1,6 @@
 import { createEvent } from "effector-root";
 
-import { STICKER } from "../../sticker-ids";
+import { STICKER } from "../../common/sticker-ids";
 import { MessageRating, TG } from "../types";
 
 export const messageEvent = createEvent<TG["message"]>();

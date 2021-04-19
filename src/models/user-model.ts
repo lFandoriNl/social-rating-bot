@@ -3,7 +3,7 @@ import * as mongoose from "mongoose";
 export interface User extends mongoose.Document {
   userId: number;
   name: string;
-  socialCredit: number;
+  rating: number;
   level: number;
   chat: string;
 }
@@ -11,7 +11,7 @@ export interface User extends mongoose.Document {
 const userSchema = new mongoose.Schema({
   userId: Number,
   name: String,
-  socialCredit: Number,
+  rating: Number,
   level: Number,
   chat: {
     type: mongoose.Schema.Types.ObjectId,

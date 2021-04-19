@@ -23,7 +23,7 @@ const scope = fork(root);
 const commands = [
   { command: "rate", description: "Повысить рейтинг" },
   { command: "unrate", description: "Понизить рейтинг" },
-  { command: "stat", description: "Показать пищевую цепочку" },
+  { command: "stat", description: "Показать рейтинг группы" },
   { command: "roll_dice", description: "Испытать удачу" },
   { command: "help", description: "Что я могу" },
 ];
@@ -62,23 +62,19 @@ bot.command("stat", async (ctx) => {
   }
 
   if (users.length === 0) {
-    return ctx.reply("Пищевая цепочка отсутствует");
+    return ctx.reply("Рейтинг группы отсутствует");
   }
 
   const usersList = users
     .map((user, index) => {
       const start = `${index + 1}.`;
-      const end = `${user.socialCredit}`.padEnd(10, " ");
+      const end = `${user.rank}`.padEnd(20, " ");
 
-      const needAddSpaceBeforeRating = end.startsWith("-") === false;
-
-      return `${start} ${needAddSpaceBeforeRating ? "  " : ""}${end}${
-        user.name
-      }`;
+      return `${start} ${end} ${user.name}`;
     })
     .join("\n");
 
-  ctx.reply(`Рейтинг пищевой цепочки:\n${usersList}`);
+  ctx.reply(`Рейтинг группы:\n${usersList}`);
 });
 
 bot.command("roll_dice", (ctx) => {

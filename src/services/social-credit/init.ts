@@ -1,4 +1,5 @@
 import { forward } from "effector-root";
+import { getRangByRating } from "../../common/social-rating-ranks";
 import { UserModel } from "../../models/user-model";
 import { chatRepository } from "../../repositories/chat-repository";
 import { messageRepository } from "../../repositories/message-repository";
@@ -61,7 +62,7 @@ addRatingFx.use(async (data) => {
 
   await user.updateOne({
     name: data.user.name,
-    socialCredit: user.socialCredit + rating,
+    rating: user.rating + rating,
   });
 });
 
@@ -70,7 +71,12 @@ getTopUsersByRatingFx.use(async ({ chatId }) => {
 
   if (!chat) return [];
 
-  return await UserModel.find({ chat: chat._id }).sort({
-    socialCredit: "desc",
+  const users = await UserModel.find({ chat: chat._id }).sort({
+    rating: "desc",
   });
+
+  return users.map((user) => ({
+    name: user.name,
+    rank: getRangByRating(user.rating).text,
+  }));
 });

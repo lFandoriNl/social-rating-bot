@@ -96,7 +96,8 @@ split({
         type,
         chat: {
           id: message.chat.id,
-          name: message.chat.type || "Private",
+          // @ts-ignore
+          name: message.chat.title || "Private",
         },
         user: {
           id: replyToMessage.from.id,
