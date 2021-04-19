@@ -5,6 +5,7 @@ import {
 } from "./index";
 
 import { bot } from "../../bot";
+import { taskRunner } from "../../common/task-runner";
 
 removeMessageFx.use(async (message) => {
   await bot.telegram.deleteMessage(message.chat.id, message.message_id);
@@ -13,27 +14,15 @@ removeMessageFx.failData.watch((error) => {
   console.error(error.message);
 });
 
-removeMessageAfterTimeoutFx.use(async ({ message, ms }) => {
-  const removeMessageAfterTimeout = async () =>
-    new Promise((resolve, reject) => {
-      setTimeout(async () => {
-        try {
-          resolve(
-            await bot.telegram.deleteMessage(
-              message.chat.id,
-              message.message_id
-            )
-          );
-        } catch (error) {
-          reject(error);
-        }
-      }, ms);
-    });
-
-  await removeMessageAfterTimeout();
-});
-removeMessageAfterTimeoutFx.failData.watch((error) => {
-  console.error(error.message);
+removeMessageAfterTimeoutFx.use(({ message, ms }) => {
+  taskRunner.create({
+    task: "removeMessage",
+    data: {
+      chatId: message.chat.id,
+      messageId: message.message_id,
+    },
+    timeout: ms,
+  });
 });
 
 replyToMessageFx.use(async ({ message, text }) => {

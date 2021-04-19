@@ -6,7 +6,6 @@ import {
   replyToMessageFx,
 } from "../message-action";
 import {
-  messageStickerSocial,
   messageReplyStickerSocial,
   messageNoReplyStickerSocial,
   messageSocialToUser,

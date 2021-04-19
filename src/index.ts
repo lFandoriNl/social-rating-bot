@@ -3,6 +3,8 @@ require("dotenv").config();
 import { allSettled, fork, root } from "effector-root";
 
 import { socialCredit } from "./services/social-credit";
+
+import { taskRunner } from "./common/task-runner";
 import { createQueue } from "./lib/queue";
 import { randomRange } from "./lib/random";
 
@@ -12,6 +14,7 @@ import { messageEvent } from "./services/message";
 import { bot } from "./bot";
 import { connectDB } from "./db";
 
+import "./lib/task-runner";
 import "./init";
 
 connectDB().then(() => bot.launch());
@@ -87,22 +90,47 @@ bot.command("roll_dice", (ctx) => {
 });
 
 bot.command("rate", (ctx) => {
+  // if (ctx.chat.id === -1001379121758) return;
+
   queue.push(async () => {
     await allSettled(commandRateEvent, { scope, params: ctx.update.message });
   });
 });
 
 bot.command("unrate", (ctx) => {
+  // if (ctx.chat.id === -1001379121758) return;
+
   queue.push(async () => {
     await allSettled(commandUnRateEvent, { scope, params: ctx.update.message });
   });
 });
 
 bot.on("message", (ctx) => {
+  // if (ctx.chat.id === -1001379121758) return;
+
   queue.push(async () => {
     await allSettled(messageEvent, { scope, params: ctx.update.message });
   });
 });
 
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
+process.on("SIGUSR2", () => {
+  taskRunner.save().then(() => {
+    process.exit();
+  });
+});
+
+process.once("SIGINT", () => {
+  bot.stop("SIGINT");
+
+  taskRunner.save().then(() => {
+    process.exit();
+  });
+});
+
+process.once("SIGTERM", () => {
+  bot.stop("SIGTERM");
+
+  taskRunner.save().then(() => {
+    process.exit();
+  });
+});
