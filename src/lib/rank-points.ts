@@ -1,8 +1,14 @@
-export function generateRankPoints(
-  startPoint: number,
-  multiple: number,
-  countRanks: number
-): Array<[number, number]> {
+type GenerateRankPoints = {
+  startPoint: number;
+  multiple: number;
+  countRanks: number;
+};
+
+export function generateRankPoints({
+  startPoint,
+  multiple,
+  countRanks,
+}: GenerateRankPoints): Array<[number, number]> {
   const ranks: Array<[number, number]> = [];
 
   const countHalfRanks = Math.floor(countRanks / 2);

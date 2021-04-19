@@ -1,6 +1,10 @@
 import { generateRankPoints } from "../lib/rank-points";
 
-const rankPoints = generateRankPoints(60, 2, 9);
+const rankPoints = generateRankPoints({
+  startPoint: 40,
+  multiple: 2,
+  countRanks: 9,
+});
 
 type SocialRatingRank = {
   level: number;
