@@ -3,7 +3,7 @@ import { generateRankPoints } from "../lib/rank-points";
 const rankPoints = generateRankPoints({
   startPoint: 20,
   multiple: 2,
-  countRanks: 9,
+  countRanks: 13,
 });
 
 type SocialRatingRank = {
@@ -12,7 +12,15 @@ type SocialRatingRank = {
   points: [number, number];
 };
 
-export const socialRatingRanks: SocialRatingRank[] = [
+export const socialRatingRanks = [
+  {
+    level: 6,
+    text: "Покровитель ЦП",
+  },
+  {
+    level: 5,
+    text: "Друг Антона",
+  },
   {
     level: 4,
     text: "Элита",
@@ -39,7 +47,7 @@ export const socialRatingRanks: SocialRatingRank[] = [
   },
   {
     level: -2,
-    text: "Ублюдок",
+    text: "Душнила",
   },
   {
     level: -3,
@@ -47,7 +55,15 @@ export const socialRatingRanks: SocialRatingRank[] = [
   },
   {
     level: -4,
-    text: "Исчадие ада",
+    text: "Украинец",
+  },
+  {
+    level: -5,
+    text: "Мразь",
+  },
+  {
+    level: -6,
+    text: "Хейтер ЦП",
   },
 ].map((rank, idx) => ({ ...rank, points: rankPoints[idx] }));
 
