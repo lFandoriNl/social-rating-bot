@@ -15,7 +15,7 @@ removeMessageFx.failData.watch((error) => {
 });
 
 removeMessageAfterTimeoutFx.use(({ message, ms }) => {
-  taskRunner.create({
+  taskRunner.createTask({
     task: "removeMessage",
     data: {
       chatId: message.chat.id,

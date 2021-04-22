@@ -29,12 +29,12 @@ export const messageStickerSocial = messageSticker.filterMap<MessageRating>(
   }
 );
 
-export const messageReplyStickerSocial = messageStickerSocial.filter({
+export const messageStickerSocialReply = messageStickerSocial.filter({
   // @ts-ignore
   fn: (messageRating) => Boolean(messageRating.message.reply_to_message),
 });
 
-export const messageNoReplyStickerSocial = messageStickerSocial.filter({
+export const messageStickerSocialNoReply = messageStickerSocial.filter({
   // @ts-ignore
   fn: (messageRating) => !Boolean(messageRating.message.reply_to_message),
 });

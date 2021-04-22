@@ -1,52 +1,80 @@
-import { forward, guard, split, merge } from "effector-root";
+import { forward, guard, split, merge, sample, combine } from "effector-root";
+
+import { socialCredit } from "../social-credit";
+
+import { blockUserSendRatingFx, canUserSendRatingFx } from "../user";
 
 import {
   removeMessageAfterTimeoutFx,
   removeMessageFx,
   replyToMessageFx,
 } from "../message-action";
-import {
-  messageReplyStickerSocial,
-  messageNoReplyStickerSocial,
-  messageSocialToUser,
-} from "./index";
 
-import { socialCredit } from "../social-credit";
-
-import { AddSocialRating, MessageRating } from "../types";
 import {
   commandRateReply,
   commandUnRateReply,
   commandRateNoReply,
 } from "../command-rate";
 
+import {
+  messageStickerSocialReply,
+  messageStickerSocialNoReply,
+  messageSocialToUser,
+} from "./index";
+
+import { REMOVE_MESSAGE_AFTER_DELAY } from "../../constants/timeouts";
+
+import { AddSocialRating, MessageRating, TG } from "../types";
+
 forward({
   from: merge([
-    messageNoReplyStickerSocial,
+    messageStickerSocialNoReply,
     commandRateNoReply.map((message) => ({ message })),
   ]),
   to: removeMessageFx.prepend(({ message }) => message),
 });
 
+const sendRatingReply = merge([
+  messageStickerSocialReply,
+  commandRateReply,
+  commandUnRateReply,
+]);
+
 forward({
-  from: merge([
-    messageReplyStickerSocial,
-    commandRateReply,
-    commandUnRateReply,
-  ]),
-  to: removeMessageAfterTimeoutFx.prepend(({ message }) => ({
-    message,
-    ms: 3 * 60 * 1000,
+  from: sendRatingReply,
+  to: canUserSendRatingFx,
+});
+
+const { canSendRating, canNotSendRating } = split(canUserSendRatingFx.done, {
+  canSendRating: ({ result }) => result,
+  canNotSendRating: ({ result }) => !result,
+});
+
+forward({
+  from: canSendRating,
+  to: blockUserSendRatingFx.prepend<{ params: MessageRating }>(
+    ({ params }) => params.message
+  ),
+});
+
+forward({
+  from: canNotSendRating,
+  to: removeMessageFx.prepend<{ params: MessageRating }>(
+    ({ params }) => params.message
+  ),
+});
+
+forward({
+  from: canSendRating,
+  to: removeMessageAfterTimeoutFx.prepend(({ params }) => ({
+    message: params.message,
+    ms: REMOVE_MESSAGE_AFTER_DELAY,
   })),
 });
 
 const messageToUser = guard({
-  source: merge([
-    messageReplyStickerSocial,
-    commandRateReply,
-    commandUnRateReply,
-  ]),
-  filter: ({ message }) => {
+  source: canSendRating,
+  filter: ({ params: { message } }) => {
     if (message.chat.type !== "private") {
       // @ts-ignore
       if (message.reply_to_message.from.is_bot) {
@@ -59,7 +87,7 @@ const messageToUser = guard({
 });
 
 split({
-  source: messageToUser,
+  source: messageToUser.map(({ params }) => params),
   match: ({ message }: MessageRating) => {
     // @ts-ignore
     const recipientUserId = message.reply_to_message.from.id;
