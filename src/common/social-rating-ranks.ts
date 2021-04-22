@@ -2,7 +2,8 @@ import { generateRankPoints } from "../lib/rank-points";
 
 const rankPoints = generateRankPoints({
   startPoint: 40,
-  multiple: 1.7,
+  multiplePositive: 1.5,
+  multipleNegative: 1.7,
   countRanks: 13,
 });
 
