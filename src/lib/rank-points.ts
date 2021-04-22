@@ -1,3 +1,5 @@
+type Point = { from: number; to: number };
+
 type GenerateRankPoints = {
   startPoint: number;
   multiple: number;
@@ -8,24 +10,24 @@ export function generateRankPoints({
   startPoint,
   multiple,
   countRanks,
-}: GenerateRankPoints): Array<[number, number]> {
-  const ranks: Array<[number, number]> = [];
+}: GenerateRankPoints): Point[] {
+  const ranks: Point[] = [];
 
   const countHalfRanks = Math.floor(countRanks / 2);
 
   let currentPoint = -startPoint;
   for (let i = 0; i < countHalfRanks; i++) {
-    const nextPoint = -Math.abs(currentPoint) * multiple;
-    ranks.unshift([nextPoint, -Math.abs(currentPoint) - 1]);
+    const nextPoint = Math.round(-Math.abs(currentPoint) * multiple);
+    ranks.unshift({ from: nextPoint, to: -Math.abs(currentPoint) - 1 });
     currentPoint = nextPoint;
   }
 
-  ranks.push([-startPoint, startPoint]);
+  ranks.push({ from: -startPoint, to: startPoint });
 
   currentPoint = startPoint;
   for (let i = 0; i < countHalfRanks; i++) {
-    const nextPoint = currentPoint * multiple;
-    ranks.push([currentPoint + 1, nextPoint]);
+    const nextPoint = Math.round(currentPoint * multiple);
+    ranks.push({ from: currentPoint + 1, to: nextPoint });
     currentPoint = nextPoint;
   }
 

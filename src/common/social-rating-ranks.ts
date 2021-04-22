@@ -1,16 +1,10 @@
 import { generateRankPoints } from "../lib/rank-points";
 
 const rankPoints = generateRankPoints({
-  startPoint: 20,
-  multiple: 2,
+  startPoint: 40,
+  multiple: 1.7,
   countRanks: 13,
 });
-
-type SocialRatingRank = {
-  level: number;
-  text: string;
-  points: [number, number];
-};
 
 export const socialRatingRanks = [
   {
@@ -31,7 +25,7 @@ export const socialRatingRanks = [
   },
   {
     level: 2,
-    text: "Известный",
+    text: "Подлиза",
   },
   {
     level: 1,
@@ -59,7 +53,7 @@ export const socialRatingRanks = [
   },
   {
     level: -5,
-    text: "Мразь",
+    text: "Дно",
   },
   {
     level: -6,
@@ -70,15 +64,15 @@ export const socialRatingRanks = [
 export function getRangByRating(rating: number) {
   const ranks = socialRatingRanks;
 
-  if (ranks[0].points[1] < rating) {
+  if (ranks[0].points.from < rating) {
     return ranks[0];
   }
 
-  if (ranks[ranks.length - 1].points[0] > rating) {
+  if (ranks[ranks.length - 1].points.from > rating) {
     return ranks[ranks.length - 1];
   }
 
   return ranks.find(
-    ({ points: [from, to] }) => from <= rating && rating <= to
+    ({ points: { from, to } }) => from <= rating && rating <= to
   )!;
 }
