@@ -9,13 +9,15 @@ import { createQueue } from "./lib/queue";
 
 import { commandRateEvent, commandUnRateEvent } from "./services/command-rate";
 import { messageEvent } from "./services/message";
-import { diceRollEvent } from "./services/dice-roll";
+import { diceRollEvent, runRouletteEvent } from "./services/roll-action";
 
 import { bot } from "./bot";
 import { connectDB } from "./db";
 
 import "./lib/task-runner";
 import "./init";
+import { checkAdministratorFx } from "./services/admin";
+import { removeMessageFx } from "./services/message-action";
 
 connectDB().then(() => bot.launch());
 
@@ -27,6 +29,7 @@ const commands = [
   { command: "rate", description: "Повысить рейтинг" },
   { command: "unrate", description: "Понизить рейтинг" },
   { command: "stat", description: "Показать рейтинг группы" },
+  { command: "run_roulette", description: "Запустить викторину (only admin)" },
   { command: "roll_dice", description: "Испытать удачу" },
   { command: "help", description: "Помощь" },
 ];
@@ -55,6 +58,7 @@ bot.help((ctx) => {
     "3. Между отправкой рейтинга у каждого юзера таймаут на 3 минуты на отправку следующей команды",
     "4. На одно смс можно отправить только только одно повышение и одно понижение рейтинга",
     "5. Сообщения от команды /roll_dice удаляться спустя 30 секунд",
+    "6. /run_roulette на викторине разыгрывают рейтинг, запустить может только админ",
   ].join("\n");
 
   ctx.reply(help, {
@@ -89,8 +93,18 @@ bot.command("stat", async (ctx) => {
   ctx.reply(`Рейтинг группы:\n${usersList}`);
 });
 
-bot.command("roll_dice", async (ctx) => {
+bot.command("roll_dice", (ctx) => {
   diceRollEvent(ctx.update.message);
+});
+
+bot.command("run_roulette", async (ctx) => {
+  const isAdmin = checkAdministratorFx(ctx.update.message);
+
+  if (isAdmin) {
+    return runRouletteEvent(ctx.update.message);
+  }
+
+  removeMessageFx(ctx.update.message);
 });
 
 bot.command("rate", (ctx) => {

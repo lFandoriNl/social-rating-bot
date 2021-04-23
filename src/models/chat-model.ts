@@ -2,7 +2,7 @@ import * as mongoose from "mongoose";
 import { User } from "./user-model";
 
 export interface Chat extends mongoose.Document {
-  userId: number;
+  chatId: number;
   name: string;
   users: User[];
 }

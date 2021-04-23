@@ -1,6 +1,8 @@
 import { createEffect } from "effector-root";
 
+import { Chat, ChatModel } from "../models/chat-model";
 import { UserModel, User } from "../models/user-model";
+
 import { UserRequest } from "../services/types";
 
 type UserRequestExtended = UserRequest & { chatId: string; rating: number };
@@ -8,6 +10,7 @@ type UserRequestExtended = UserRequest & { chatId: string; rating: number };
 const createUserFx = createEffect<UserRequestExtended, User>();
 const getUserByIdFx = createEffect<UserRequestExtended, User | null>();
 const getUserByIdOrCreateFx = createEffect<UserRequestExtended, User>();
+const getUserByChatId = createEffect<Chat["chatId"], User[] | null>();
 
 createUserFx.use(async (data) => {
   const user = new UserModel({
@@ -36,8 +39,17 @@ getUserByIdOrCreateFx.use(async (data) => {
   return await createUserFx(data);
 });
 
+getUserByChatId.use(async (chatId) => {
+  const chat = await ChatModel.findOne({ chatId });
+
+  if (!chat) return null;
+
+  return await UserModel.find({ chat: chat._id });
+});
+
 export const userRepository = {
   createUserFx,
   getUserByIdFx,
   getUserByIdOrCreateFx,
+  getUserByChatId,
 };

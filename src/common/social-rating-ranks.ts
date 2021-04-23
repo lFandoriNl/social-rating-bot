@@ -50,7 +50,7 @@ export const socialRatingRanks = [
   },
   {
     level: -4,
-    text: "Украинец",
+    text: "Украинец 🇺🇦",
   },
   {
     level: -5,
