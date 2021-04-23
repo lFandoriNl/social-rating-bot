@@ -98,6 +98,7 @@ bot.command("roll_dice", (ctx) => {
 });
 
 bot.command("run_roulette", async (ctx) => {
+  // return;
   const isAdmin = checkAdministratorFx(ctx.update.message);
 
   if (isAdmin) {

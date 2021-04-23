@@ -6,7 +6,7 @@ import { delay } from "../../lib/delay";
 import { randomRange, takeRandomValues } from "../../lib/random";
 
 import { userRepository } from "../../repositories/user-repository";
-import { User } from "../../models/user-model";
+import { User, UserModel } from "../../models/user-model";
 
 import { REMOVE_DICE_ROLL } from "../../constants/timeouts";
 
@@ -139,9 +139,13 @@ runRouletteFx.use(async (message) => {
       `${winnerUser.name} тебе повезло! Получаешь одобрение чата 👍`
     );
 
+    console.log("Before win:", winnerUser.rating, winnerUser.name);
     await winnerUser.updateOne({
       rating: winnerUser.rating + 60,
     });
+
+    const updatedUser = await UserModel.findById(winnerUser._id);
+    console.log("After win:", updatedUser?.rating, winnerUser.name);
   }
 
   if (decisionValue <= 3) {
@@ -150,8 +154,12 @@ runRouletteFx.use(async (message) => {
       `${winnerUser.name} повезет в следующий раз! Чат осуждает 👎`
     );
 
+    console.log("Before win:", winnerUser.rating, winnerUser.name);
     await winnerUser.updateOne({
       rating: winnerUser.rating - 60,
     });
+
+    const updatedUser = await UserModel.findById(winnerUser._id);
+    console.log("After win:", updatedUser?.rating, winnerUser.name);
   }
 });
