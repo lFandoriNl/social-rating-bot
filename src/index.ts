@@ -29,7 +29,7 @@ const commands = [
   { command: "rate", description: "Повысить рейтинг" },
   { command: "unrate", description: "Понизить рейтинг" },
   { command: "stat", description: "Показать рейтинг группы" },
-  { command: "run_roulette", description: "Запустить викторину (only admin)" },
+  { command: "run_roulette", description: "Запустить рулетку (only admin)" },
   { command: "roll_dice", description: "Испытать удачу" },
   { command: "help", description: "Помощь" },
 ];
@@ -58,7 +58,7 @@ bot.help((ctx) => {
     "3. Между отправкой рейтинга у каждого юзера таймаут на 3 минуты на отправку следующей команды",
     "4. На одно смс можно отправить только только одно повышение и одно понижение рейтинга",
     "5. Сообщения от команды /roll_dice удаляться спустя 30 секунд",
-    "6. /run_roulette на викторине разыгрывают рейтинг, запустить может только админ",
+    "6. /run_roulette в рулетке разыгрывают рейтинг, запустить может только админ",
   ].join("\n");
 
   ctx.reply(help, {
