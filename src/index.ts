@@ -6,10 +6,10 @@ import { socialCredit } from "./services/social-credit";
 
 import { taskRunner } from "./common/task-runner";
 import { createQueue } from "./lib/queue";
-import { randomRange } from "./lib/random";
 
 import { commandRateEvent, commandUnRateEvent } from "./services/command-rate";
 import { messageEvent } from "./services/message";
+import { diceRollEvent } from "./services/dice-roll";
 
 import { bot } from "./bot";
 import { connectDB } from "./db";
@@ -54,6 +54,7 @@ bot.help((ctx) => {
     "2. При отправке рейтинга с реплаем сообщение удалиться спустя 3 минуты",
     "3. Между отправкой рейтинга у каждого юзера таймаут на 3 минуты на отправку следующей команды",
     "4. На одно смс можно отправить только только одно повышение и одно понижение рейтинга",
+    "5. Сообщения от команды /roll_dice удаляться спустя 30 секунд",
   ].join("\n");
 
   ctx.reply(help, {
@@ -88,13 +89,8 @@ bot.command("stat", async (ctx) => {
   ctx.reply(`Рейтинг группы:\n${usersList}`);
 });
 
-bot.command("roll_dice", (ctx) => {
-  const variant = ["🎲", "🎯", "🏀", "🎳", "🎰"];
-
-  ctx.telegram.sendDice(ctx.chat.id, {
-    emoji: variant[randomRange(0, variant.length)],
-    reply_to_message_id: ctx.message.message_id,
-  });
+bot.command("roll_dice", async (ctx) => {
+  diceRollEvent(ctx.update.message);
 });
 
 bot.command("rate", (ctx) => {

@@ -22,7 +22,7 @@ import {
   messageSocialToUser,
 } from "./index";
 
-import { REMOVE_MESSAGE_AFTER_DELAY } from "../../constants/timeouts";
+import { REMOVE_RATING_MESSAGE } from "../../constants/timeouts";
 
 import { AddSocialRating, MessageRating, TG } from "../types";
 
@@ -68,7 +68,7 @@ forward({
   from: canSendRating,
   to: removeMessageAfterTimeoutFx.prepend(({ params }) => ({
     message: params.message,
-    ms: REMOVE_MESSAGE_AFTER_DELAY,
+    ms: REMOVE_RATING_MESSAGE,
   })),
 });
 
