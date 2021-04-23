@@ -28,7 +28,7 @@ const commands = [
   { command: "unrate", description: "Понизить рейтинг" },
   { command: "stat", description: "Показать рейтинг группы" },
   { command: "roll_dice", description: "Испытать удачу" },
-  { command: "help", description: "Что я могу" },
+  { command: "help", description: "Помощь" },
 ];
 
 bot.telegram.setMyCommands(commands);
@@ -43,14 +43,22 @@ bot.command("quit", (ctx) => {
 
 bot.help((ctx) => {
   const help = [
-    "Я Надзиратель, я слежу за вашим рейтингом",
-    "Список моих команд:",
+    "Я Надзиратель, я слежу за вашим рейтингом\n",
+    "<b>Список моих команд</b>\n",
     ...commands.map(
       ({ command, description }) => `/${command} - ${description}`
     ),
+    '\nВместо команд на рейтинг можно отправлять <a href="https://t.me/addstickers/PoohSocialCredit">стикеры</a>\n',
+    "<b>Особенности работы</b>\n",
+    "1. При отправке рейтинга без реплая сообщение удалится (нужны права админа)",
+    "2. При отправке рейтинга с реплаем сообщение удалиться спустя 3 минуты",
+    "3. Между отправкой рейтинга у каждого юзера таймаут на 3 минуты на отправку следующей команды",
+    "4. На одно смс можно отправить только только одно повышение и одно понижение рейтинга",
   ].join("\n");
 
-  ctx.reply(help);
+  ctx.reply(help, {
+    parse_mode: "HTML",
+  });
 });
 
 bot.command("stat", async (ctx) => {
