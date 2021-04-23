@@ -9,10 +9,17 @@ BOT_TOKEN=
 MONGO_DB=
 ```
 
+Terminal
+
+```bash
+make run
+```
+
+or
+
 ```bash
 yarn
-yarn start
-or yarn start:watch (with nodemon)
+start:watch (with nodemon)
 ```
 
 ## Функциональность
