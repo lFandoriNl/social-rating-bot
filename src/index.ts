@@ -14,10 +14,10 @@ import { diceRollEvent, runRouletteEvent } from "./services/roll-action";
 import { bot } from "./bot";
 import { connectDB } from "./db";
 
-import "./lib/task-runner";
-import "./init";
 import { checkAdministratorFx } from "./services/admin";
 import { removeMessageFx } from "./services/message-action";
+
+import "./services/init";
 
 connectDB().then(() => bot.launch());
 

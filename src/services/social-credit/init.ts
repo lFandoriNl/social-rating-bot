@@ -12,7 +12,8 @@ forward({
 });
 
 addRatingFx.use(async (data) => {
-  console.log(data);
+  console.log(data.chat.name, data.user.name, data.type);
+
   const chat = await chatRepository.getChatByIdOrCreateFx(data.chat);
 
   const message = await messageRepository.getMessageByIdFx({
@@ -62,6 +63,7 @@ addRatingFx.use(async (data) => {
 
   await user.updateOne({
     name: data.user.name,
+    username: data.user.username,
     rating: user.rating + rating,
   });
 });

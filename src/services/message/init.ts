@@ -122,9 +122,11 @@ split({
       //@ts-ignore
       const replyToMessage = message.reply_to_message;
 
-      const userName = `${replyToMessage.from.first_name || ""} ${
+      const fullName = `${replyToMessage.from.first_name || ""} ${
         replyToMessage.from.last_name || ""
       }`.trim();
+
+      const username = `@${replyToMessage.from.username}`;
 
       return {
         type,
@@ -135,7 +137,8 @@ split({
         },
         user: {
           id: replyToMessage.from.id,
-          name: userName,
+          name: fullName,
+          username,
         },
         replyToMessage: {
           id: replyToMessage.message_id,

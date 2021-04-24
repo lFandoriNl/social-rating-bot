@@ -10,7 +10,7 @@ export type MessageRating = {
 };
 
 export type ChatRequest = { id: number; name: string };
-export type UserRequest = { id: number; name: string };
+export type UserRequest = { id: number; name: string; username: string };
 export type MessageRequest = { id: number; date: number };
 
 export type AddSocialRating = {

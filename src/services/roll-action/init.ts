@@ -136,7 +136,9 @@ runRouletteFx.use(async (message) => {
   if (decisionValue >= 4) {
     await bot.telegram.sendMessage(
       message.chat.id,
-      `*${winnerUser.name}* тебе повезло! Получаешь одобрение чата 👍`,
+      `${winnerUser.username || ""} *${
+        winnerUser.name
+      }* тебе повезло! Получаешь одобрение чата 👍`,
       {
         parse_mode: "Markdown",
       }
@@ -154,7 +156,9 @@ runRouletteFx.use(async (message) => {
   if (decisionValue <= 3) {
     await bot.telegram.sendMessage(
       message.chat.id,
-      `*${winnerUser.name}* от ты кожаный дурак! Чат осуждает 👎`,
+      `${winnerUser.username || ""} *${
+        winnerUser.name
+      }* от ты кожаный дурак! Чат осуждает 👎`,
       {
         parse_mode: "Markdown",
       }

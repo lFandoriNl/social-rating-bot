@@ -16,6 +16,7 @@ createUserFx.use(async (data) => {
   const user = new UserModel({
     userId: data.id,
     name: data.name,
+    username: data.username,
     rating: data.rating,
     level: 0,
     chat: data.chatId,
