@@ -9,7 +9,12 @@ checkAdministratorFx.use(async (message) => {
   const members = await getChatAdministratorsFx(message);
 
   const isAdmin = Boolean(
-    members.find((member) => member.user.id === message.from?.id)
+    members.find((member) => {
+      return (
+        member.user.id === message.from?.id &&
+        ["creator", "administrator"].includes(member.status)
+      );
+    })
   );
 
   return isAdmin;
