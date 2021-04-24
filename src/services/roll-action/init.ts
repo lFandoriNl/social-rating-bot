@@ -141,7 +141,7 @@ runRouletteFx.use(async (message) => {
 
     console.log("Before win:", winnerUser.rating, winnerUser.name);
     await winnerUser.updateOne({
-      rating: winnerUser.rating + 60,
+      rating: winnerUser.rating + 100,
     });
 
     const updatedUser = await UserModel.findById(winnerUser._id);
@@ -156,7 +156,7 @@ runRouletteFx.use(async (message) => {
 
     console.log("Before win:", winnerUser.rating, winnerUser.name);
     await winnerUser.updateOne({
-      rating: winnerUser.rating - 60,
+      rating: winnerUser.rating - 100,
     });
 
     const updatedUser = await UserModel.findById(winnerUser._id);
