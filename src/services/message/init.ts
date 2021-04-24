@@ -72,18 +72,25 @@ forward({
   })),
 });
 
-const messageToUser = guard({
-  source: canSendRating,
-  filter: ({ params: { message } }) => {
-    if (message.chat.type !== "private") {
-      // @ts-ignore
-      if (message.reply_to_message.from.is_bot) {
-        return false;
-      }
-    }
-
-    return true;
+const { messageToUser, messageToBot } = split(canSendRating, {
+  messageToUser: ({ params: { message } }) => {
+    // @ts-ignore
+    return !message.reply_to_message.from.is_bot;
   },
+  messageToBot: ({ params: { message } }) => {
+    // @ts-ignore
+    return message.reply_to_message.from.is_bot;
+  },
+});
+
+forward({
+  from: messageToBot,
+  to: replyToMessageFx.prepend<{ params: MessageRating }>(
+    ({ params: { message } }) => ({
+      message,
+      text: "Я вне ваших рейтингов болван!",
+    })
+  ),
 });
 
 split({
