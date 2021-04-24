@@ -4,6 +4,9 @@ import { allSettled, fork, root } from "effector-root";
 
 import { socialCredit } from "./services/social-credit";
 
+import { UserModel } from "./models/user-model";
+import { ChatModel } from "./models/chat-model";
+
 import { taskRunner } from "./common/task-runner";
 import { createQueue } from "./lib/queue";
 
@@ -19,7 +22,11 @@ import { removeMessageFx } from "./services/message-action";
 
 import "./services/init";
 
-connectDB().then(() => bot.launch());
+connectDB().then(async () => {
+  bot.launch();
+  // const chat = await ChatModel.findOne({ chatId: -1001459291502 });
+  // console.log(JSON.stringify(await UserModel.find({ chat: chat?._id })));
+});
 
 const queue = createQueue();
 
