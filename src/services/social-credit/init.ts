@@ -75,8 +75,10 @@ getTopUsersByRatingFx.use(async ({ chatId }) => {
     rating: "desc",
   });
 
-  return users.map((user) => ({
-    name: user.name,
-    rank: getRangByRating(user.rating).text,
-  }));
+  return users
+    .filter((user) => user.rating !== 0)
+    .map((user) => ({
+      name: user.name,
+      rank: getRangByRating(user.rating).text,
+    }));
 });
