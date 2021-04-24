@@ -22,6 +22,8 @@ import { replyToMessageFx } from "./services/message-action";
 
 import "./services/init";
 
+import asTable = require("as-table");
+
 connectDB().then(async () => {
   bot.launch();
   // const chat = await ChatModel.findOne({ chatId: -1001459291502 });
@@ -66,6 +68,7 @@ bot.help((ctx) => {
     "4. На одно смс можно отправить только только одно повышение и одно понижение рейтинга",
     "5. Сообщения от команды /roll_dice удаляться спустя 30 секунд",
     "6. /run_roulette в рулетке разыгрывается рейтинг который равен 5 стикерам для одного учасника рейтинга, запустить может только админ",
+    "7. Таймаут на отправку рулетки 10 минут",
   ].join("\n");
 
   ctx.reply(help, {
@@ -88,16 +91,13 @@ bot.command("stat", async (ctx) => {
     return ctx.reply("Рейтинг группы отсутствует");
   }
 
-  const usersList = users
-    .map((user, index) => {
-      const start = `${index + 1}.`;
-      const end = `${user.rank}`.padEnd(20, " ");
+  const table = asTable([
+    ...users.map((user, index) => {
+      return [`${index + 1}.`, user.rank, user.name];
+    }),
+  ]);
 
-      return `${start} ${end} ${user.name}`;
-    })
-    .join("\n");
-
-  ctx.reply(`Рейтинг группы:\n${usersList}`);
+  ctx.reply(`<pre>Рейтинг группы:\n${table}</pre>`, { parse_mode: "HTML" });
 });
 
 bot.command("roll_dice", (ctx) => {

@@ -1,4 +1,4 @@
-import { forward } from "effector-root";
+import { forward, split } from "effector-root";
 
 import { bot } from "../../bot";
 
@@ -10,6 +10,7 @@ import { UserModel } from "../../models/user-model";
 
 import { REMOVE_DICE_ROLL } from "../../constants/timeouts";
 
+import { blockChatSendRouletteFx, canChatSendRouletteFx } from "../chat";
 import {
   removeMessageAfterTimeoutFx,
   removeMessageFx,
@@ -22,6 +23,8 @@ import {
   runRouletteFx,
   rollDiceAndReturnValueFx,
 } from "./index";
+
+import { TG } from "../types";
 
 rollDiceAndReturnValueFx.use(async (message) => {
   const diceRollMessage = await bot.telegram.sendDice(message.chat.id, {
@@ -52,7 +55,27 @@ diceRollFx.use(async (message) => {
 
 forward({
   from: runRouletteEvent,
-  to: [runRouletteFx, removeMessageFx],
+  to: canChatSendRouletteFx,
+});
+
+const { canSendRoulette, canNotSendRoulette } = split(
+  canChatSendRouletteFx.done,
+  {
+    canSendRoulette: ({ result }) => result,
+    canNotSendRoulette: ({ result }) => !result,
+  }
+);
+
+forward({
+  from: canSendRoulette.map(({ params }) => params),
+  to: [runRouletteFx, removeMessageFx, blockChatSendRouletteFx],
+});
+
+forward({
+  from: canNotSendRoulette,
+  to: removeMessageFx.prepend<{ params: TG["message"] }>(
+    ({ params }) => params
+  ),
 });
 
 runRouletteFx.use(async (message) => {
@@ -98,9 +121,7 @@ runRouletteFx.use(async (message) => {
   if (decisionValue >= 4) {
     await bot.telegram.sendMessage(
       message.chat.id,
-      `${winnerUser.username || ""} <b>${
-        winnerUser.name
-      }</b> тебе повезло! Получаешь одобрение чата 👍`,
+      `<b>${winnerUser.name}</b> тебе повезло! Получаешь одобрение чата 👍`,
       {
         parse_mode: "HTML",
       }
@@ -118,9 +139,7 @@ runRouletteFx.use(async (message) => {
   if (decisionValue <= 3) {
     await bot.telegram.sendMessage(
       message.chat.id,
-      `${winnerUser.username || ""} <b>${
-        winnerUser.name
-      }</b> ха не повезло! Чат осуждает 👎`,
+      `<b>${winnerUser.name}</b> ха не повезло! Чат осуждает 👎`,
       {
         parse_mode: "HTML",
       }

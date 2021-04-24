@@ -6,6 +6,10 @@ getChatAdministratorsFx.use(async (message) => {
 });
 
 checkAdministratorFx.use(async (message) => {
+  if (message.chat.type === "private") {
+    return true;
+  }
+
   const members = await getChatAdministratorsFx(message);
 
   const isAdmin = Boolean(
