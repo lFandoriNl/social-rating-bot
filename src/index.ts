@@ -97,7 +97,7 @@ bot.command("stat", async (ctx) => {
     }),
   ]);
 
-  ctx.reply(`<pre>Рейтинг группы:\n${table}</pre>`, { parse_mode: "HTML" });
+  ctx.reply(`<pre>Рейтинг группы\n${table}</pre>`, { parse_mode: "HTML" });
 });
 
 bot.command("roll_dice", (ctx) => {
