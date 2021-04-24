@@ -6,7 +6,7 @@ export function randomRange(min: number, max: number) {
 }
 
 export function percentChance(per: number) {
-  const randPer = randomRange(1, 101);
+  const randPer = randomRange(1, 100);
   return randPer <= per;
 }
 

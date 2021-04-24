@@ -39,7 +39,7 @@ diceRollFx.use(async (message) => {
   const variant = ["🎲", "🎯", "🏀", "🎳", "🎰"];
 
   const diceRollMessage = await bot.telegram.sendDice(message.chat.id, {
-    emoji: variant[randomRange(0, variant.length)],
+    emoji: variant[randomRange(0, variant.length - 1)],
     reply_to_message_id: message.message_id,
   });
 
@@ -52,7 +52,7 @@ diceRollFx.use(async (message) => {
 
 forward({
   from: runRouletteEvent,
-  to: runRouletteFx,
+  to: [runRouletteFx, removeMessageFx],
 });
 
 runRouletteFx.use(async (message) => {
@@ -74,14 +74,17 @@ runRouletteFx.use(async (message) => {
     return;
   }
 
-  const randomUsers = takeRandomValues(users, 6);
+  // const randomUsers = takeRandomValues(users, 6);
+
+  const winnerUser = users[randomRange(0, users.length - 1)];
 
   await bot.telegram.sendMessage(
     message.chat.id,
     [
       "*Начинаем рулетку, ставка - социальный рейтинг!*\n",
-      "Список наших учасников",
-      ...randomUsers.map((user, index) => `${index + 1}. ${user.name}`),
+      `Наша жертва ${winnerUser.name}`,
+      "\nВыпавший кубик решит его/ее судьбу!",
+      "1..3 - прогорит, 4..6 - победит",
     ].join("\n"),
     {
       parse_mode: "Markdown",
@@ -90,44 +93,97 @@ runRouletteFx.use(async (message) => {
 
   await delay(2000);
 
-  await bot.telegram.sendMessage(message.chat.id, "Кубик брошен!");
+  // await bot.telegram.sendMessage(
+  //   message.chat.id,
+  //   [
+  //     "*Начинаем рулетку, ставка - социальный рейтинг!*\n",
+  //     "Список наших учасников",
+  //     ...randomUsers.map((user, index) => `${index + 1}. ${user.name}`),
+  //     "\nВыпавший кубик решит победителя!",
+  //   ].join("\n"),
+  //   {
+  //     parse_mode: "Markdown",
+  //   }
+  // );
 
-  await delay(1000);
+  // await delay(2000);
 
-  let winnerUser: User | null = null;
+  // let winnerUser: User | null = null;
 
-  while (!winnerUser) {
-    const [diceValue, rollDiceMessage] = await rollDiceAndReturnValueFx(
-      message
-    );
+  // while (!winnerUser) {
+  //   const [diceValue, rollDiceMessage] = await rollDiceAndReturnValueFx(
+  //     message
+  //   );
 
-    await delay(3000);
+  //   await delay(3000);
 
-    const randomUser = randomUsers[diceValue - 1];
+  //   const randomUser = randomUsers[diceValue - 1];
 
-    if (randomUser) {
-      winnerUser = randomUser;
-    } else {
-      removeMessageFx(rollDiceMessage);
-    }
-  }
+  //   if (randomUser) {
+  //     winnerUser = randomUser;
+  //   } else {
+  //     removeMessageFx(rollDiceMessage);
+  //   }
+  // }
 
-  await bot.telegram.sendMessage(
-    message.chat.id,
-    `Победитель: *${winnerUser.name}*`,
-    {
-      parse_mode: "Markdown",
-    }
-  );
+  // await bot.telegram.sendMessage(
+  //   message.chat.id,
+  //   `Победитель: *${winnerUser.name}*`,
+  //   {
+  //     parse_mode: "Markdown",
+  //   }
+  // );
 
-  await delay(2000);
+  // await delay(1000);
 
-  await bot.telegram.sendMessage(
-    message.chat.id,
-    "Добавим рейтинга или убавим? Да - 4..6, Нет - 1..3"
-  );
+  // const decisionValue = randomRange(0, 1);
 
-  await delay(2000);
+  // if (decisionValue === 1) {
+  //   await bot.telegram.sendMessage(
+  //     message.chat.id,
+  //     `${winnerUser.username || ""} *${
+  //       winnerUser.name
+  //     }* тебе повезло! Получаешь одобрение чата 👍`,
+  //     {
+  //       parse_mode: "Markdown",
+  //     }
+  //   );
+
+  //   console.log("Before win:", winnerUser.rating, winnerUser.name);
+  //   await winnerUser.updateOne({
+  //     rating: winnerUser.rating + 100,
+  //   });
+
+  //   const updatedUser = await UserModel.findById(winnerUser._id);
+  //   console.log("After win:", updatedUser?.rating, winnerUser.name);
+  // }
+
+  // if (decisionValue === 0) {
+  //   await bot.telegram.sendMessage(
+  //     message.chat.id,
+  //     `${winnerUser.username || ""} *${
+  //       winnerUser.name
+  //     }* от ты кожаный дурак! Чат осуждает 👎`,
+  //     {
+  //       parse_mode: "Markdown",
+  //     }
+  //   );
+
+  //   console.log("Before win:", winnerUser.rating, winnerUser.name);
+  //   await winnerUser.updateOne({
+  //     rating: winnerUser.rating - 100,
+  //   });
+
+  //   const updatedUser = await UserModel.findById(winnerUser._id);
+  //   console.log("After win:", updatedUser?.rating, winnerUser.name);
+  // }
+
+  // await bot.telegram.sendMessage(
+  //   message.chat.id,
+  //   "Добавим рейтинга или убавим? Да - 4..6, Нет - 1..3"
+  // );
+
+  // await delay(2000);
 
   const [decisionValue] = await rollDiceAndReturnValueFx(message);
 
@@ -158,7 +214,7 @@ runRouletteFx.use(async (message) => {
       message.chat.id,
       `${winnerUser.username || ""} *${
         winnerUser.name
-      }* от ты кожаный дурак! Чат осуждает 👎`,
+      }* ха не повезло! Чат осуждает 👎`,
       {
         parse_mode: "Markdown",
       }
@@ -173,3 +229,5 @@ runRouletteFx.use(async (message) => {
     console.log("After win:", updatedUser?.rating, winnerUser.name);
   }
 });
+
+runRouletteFx.failData.watch((error) => console.log(error.message));

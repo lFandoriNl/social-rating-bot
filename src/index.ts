@@ -18,7 +18,7 @@ import { bot } from "./bot";
 import { connectDB } from "./db";
 
 import { checkAdministratorFx } from "./services/admin";
-import { removeMessageFx } from "./services/message-action";
+import { replyToMessageFx } from "./services/message-action";
 
 import "./services/init";
 
@@ -65,7 +65,7 @@ bot.help((ctx) => {
     "3. Между отправкой рейтинга у каждого юзера таймаут на 3 минуты на отправку следующей команды",
     "4. На одно смс можно отправить только только одно повышение и одно понижение рейтинга",
     "5. Сообщения от команды /roll_dice удаляться спустя 30 секунд",
-    "6. /run_roulette в рулетке разыгрывают рейтинг равен 5 стикерам, запустить может только админ. Максимальное количество участников - 6",
+    "6. /run_roulette в рулетке разыгрывается рейтинг который равен 5 стикерам для одного учасника рейтинга, запустить может только админ",
   ].join("\n");
 
   ctx.reply(help, {
@@ -105,14 +105,16 @@ bot.command("roll_dice", (ctx) => {
 });
 
 bot.command("run_roulette", async (ctx) => {
-  // return;
-  const isAdmin = checkAdministratorFx(ctx.update.message);
+  const isAdmin = await checkAdministratorFx(ctx.update.message);
 
   if (isAdmin) {
     return runRouletteEvent(ctx.update.message);
   }
 
-  removeMessageFx(ctx.update.message);
+  replyToMessageFx({
+    message: ctx.update.message,
+    text: "Запускать рулетку может только админ",
+  });
 });
 
 bot.command("rate", (ctx) => {
