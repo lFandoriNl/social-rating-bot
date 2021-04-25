@@ -217,8 +217,9 @@ runCasinoFx.use(async (message) => {
       `Добро пожаловать в казино <b>${message.from.first_name} ${message.from.last_name}</b>, где ставка твой социальный рейтинг!\n`,
       "Отправь в течении минуты реплаем к этому сообщению свою ставку в формате:",
       "{твоя_ставка} {какой_кубик_выпадет}\n",
-      'Для примера: "40 6" - значение кубика от 1 до 6\n',
-      "Если угадаешь с кубиком получишь <b>х3</b> рейтинга от своей ставки, если нет то потеряешь свой рейтинг!",
+      'Для примера: "40 6" - значение кубика от 1 до 6',
+      "Ставка может быть от 1 до 100, а кубик от 1 до 6\n",
+      "Если угадаешь с кубиком получишь <b>х5</b> рейтинга от своей ставки, если нет то потеряешь свой рейтинг!",
     ].join("\n"),
     extra: {
       parse_mode: "HTML",
@@ -267,21 +268,29 @@ const prepareCasinoGame = sample({
   },
 });
 
-guard({
+split({
   source: prepareCasinoGame,
-  filter: ({ ratingBet, diceBet }) => Boolean(ratingBet && diceBet),
-  target: rollDiceCasinoGameFx,
-});
-
-guard({
-  source: prepareCasinoGame,
-  filter: ({ ratingBet, diceBet }) => Boolean(!ratingBet && !diceBet),
-  target: replyToMessageFx.prepend(
-    ({ message }: { message: TG["message"] }) => ({
-      message,
-      text: "Неверный формат ставки",
-    })
-  ),
+  match: {
+    invalidNumbers: ({ ratingBet, diceBet }) => {
+      return (
+        !ratingBet ||
+        !diceBet ||
+        ratingBet <= 0 ||
+        ratingBet > 100 ||
+        diceBet <= 0 ||
+        diceBet > 6
+      );
+    },
+  },
+  cases: {
+    invalidNumbers: replyToMessageFx.prepend(
+      ({ message }: { message: TG["message"] }) => ({
+        message,
+        text: "Рейтинг должен быть от 1 до 100, значение кубика от 1 до 6",
+      })
+    ),
+    __: rollDiceCasinoGameFx,
+  },
 });
 
 rollDiceCasinoGameFx.use(async ({ gameId, ratingBet, diceBet, message }) => {
@@ -313,7 +322,7 @@ rollDiceCasinoGameFx.use(async ({ gameId, ratingBet, diceBet, message }) => {
     if (user) {
       console.log("Casino before win:", user.rating, user.name);
       await user.updateOne({
-        rating: user.rating + ratingBet * 3,
+        rating: user.rating + ratingBet * 5,
       });
 
       const updatedUser = await UserModel.findById(user._id);
