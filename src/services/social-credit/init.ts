@@ -82,5 +82,6 @@ getTopUsersByRatingFx.use(async ({ chatId }) => {
     .map((user) => ({
       name: user.name,
       rank: getRangByRating(user.rating).text,
+      rating: user.rating,
     }));
 });

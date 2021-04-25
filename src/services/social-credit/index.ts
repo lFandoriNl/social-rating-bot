@@ -8,7 +8,7 @@ const decrease = createEvent<AddSocialRating>();
 export const addRatingFx = createEffect<AddSocialRating, void>();
 export const getTopUsersByRatingFx = createEffect<
   { chatId: number },
-  Array<{ name: string; rank: string }> | null
+  Array<{ name: string; rank: string; rating: number }> | null
 >();
 
 export const socialCredit = {

@@ -33,7 +33,8 @@ start:watch (with nodemon)
 3. `/stat` - Показать рейтинг группы
 4. `/run_roulette` - Запустить рулетку (only admin)
 5. `/roll_dice` - Испытать удачу
-6. `/help` - Помощь
+6. `/help_full` - Полная помощь
+7. `/help` - Помощь
 
 Вместо команд на рейтинг можно отправлять [стикеры](https://t.me/addstickers/PoohSocialCredit)
 

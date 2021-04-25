@@ -40,6 +40,7 @@ const commands = [
   { command: "stat", description: "Показать рейтинг группы" },
   { command: "run_roulette", description: "Запустить рулетку (only admin)" },
   { command: "roll_dice", description: "Испытать удачу" },
+  { command: "help_full", description: "Полная помощь" },
   { command: "help", description: "Помощь" },
 ];
 
@@ -60,6 +61,22 @@ bot.help((ctx) => {
     ...commands.map(
       ({ command, description }) => `/${command} - ${description}`
     ),
+    '\n<a href="https://github.com/lFandoriNl/social-rating-bot">Репозиторий бота</a>',
+  ].join("\n");
+
+  ctx.reply(help, {
+    parse_mode: "HTML",
+    disable_web_page_preview: true,
+  });
+});
+
+bot.command("help_full", (ctx) => {
+  const help = [
+    "Я Надзиратель, я слежу за вашим рейтингом\n",
+    "<b>Список моих команд</b>\n",
+    ...commands.map(
+      ({ command, description }) => `/${command} - ${description}`
+    ),
     '\nВместо команд на рейтинг можно отправлять <a href="https://t.me/addstickers/PoohSocialCredit">стикеры</a>\n',
     "<b>Особенности работы</b>\n",
     "1. При отправке рейтинга без реплая сообщение удалится (нужны права админа)",
@@ -69,6 +86,7 @@ bot.help((ctx) => {
     "5. Сообщения от команды /roll_dice удаляться спустя 30 секунд",
     "6. /run_roulette в рулетке разыгрывается рейтинг который равен 5 стикерам для одного учасника рейтинга, запустить может только админ",
     "7. Таймаут на отправку рулетки 10 минут",
+    '\n<a href="https://github.com/lFandoriNl/social-rating-bot">Репозиторий бота</a>',
   ].join("\n");
 
   ctx.reply(help, {
@@ -93,7 +111,11 @@ bot.command("stat", async (ctx) => {
 
   const table = asTable([
     ...users.map((user, index) => {
-      return [`${index + 1}.`, user.rank, user.name];
+      const rating = user.rating.toString().startsWith("-")
+        ? user.rating
+        : ` ${user.rating}`;
+
+      return [`${index + 1}.`, user.rank, rating, user.name];
     }),
   ]);
 
