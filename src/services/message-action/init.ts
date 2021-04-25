@@ -5,7 +5,7 @@ import {
 } from "./index";
 
 import { bot } from "../../bot";
-import { taskRunner } from "../../common/task-runner";
+import { scheduler } from "../../common/scheduler";
 
 removeMessageFx.use(async (message) => {
   await bot.telegram.deleteMessage(message.chat.id, message.message_id);
@@ -15,7 +15,7 @@ removeMessageFx.failData.watch((error) => {
 });
 
 removeMessageAfterTimeoutFx.use(({ message, ms }) => {
-  taskRunner.createTask({
+  scheduler.createTask({
     task: "removeMessage",
     data: {
       chatId: message.chat.id,
@@ -25,8 +25,9 @@ removeMessageAfterTimeoutFx.use(({ message, ms }) => {
   });
 });
 
-replyToMessageFx.use(async ({ message, text }) => {
-  bot.telegram.sendMessage(message.chat.id, text, {
+replyToMessageFx.use(async ({ message, text, extra = {} }) => {
+  return await bot.telegram.sendMessage(message.chat.id, text, {
     reply_to_message_id: message.message_id,
+    ...extra,
   });
 });

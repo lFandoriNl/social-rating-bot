@@ -1,11 +1,18 @@
-import { canUserSendRatingFx, blockUserSendRatingFx } from "./index";
+import {
+  canUserSendRatingFx,
+  blockUserSendRatingFx,
+  canUserSendCasinoFx,
+  blockUserSendCasinoFx,
+  checkHasCasinoGame,
+} from "./index";
 
-import { taskRunner } from "../../common/task-runner";
+import { scheduler } from "../../common/scheduler";
 
-import { BLOCK_SEND_RATING } from "../../constants/timeouts";
+import { BLOCK_SEND_CASINO, BLOCK_SEND_RATING } from "../../constants/timeouts";
+import { UserModel } from "../../models/user-model";
 
 canUserSendRatingFx.use(({ message }) => {
-  const task = taskRunner.find((task) => {
+  const task = scheduler.find((task) => {
     if (task.type === "note" && task.name === "blockSendRating") {
       return (
         task.data.chatId === message.chat.id &&
@@ -18,7 +25,7 @@ canUserSendRatingFx.use(({ message }) => {
 });
 
 blockUserSendRatingFx.use((message) => {
-  taskRunner.createNote({
+  scheduler.createNote({
     note: "blockSendRating",
     data: {
       chatId: message.chat.id,
@@ -26,4 +33,49 @@ blockUserSendRatingFx.use((message) => {
     },
     timeout: BLOCK_SEND_RATING,
   });
+});
+
+canUserSendCasinoFx.use(async (message) => {
+  const task = scheduler.find((task) => {
+    if (task.type === "note" && task.name === "blockSendCasino") {
+      return (
+        task.data.chatId === message.chat.id &&
+        task.data.userId === message.from.id
+      );
+    }
+  });
+
+  const user = await UserModel.findOne({ userId: message.from.id });
+
+  return {
+    canSendCasino: Boolean(task) === false,
+    hasUser: Boolean(user),
+  };
+});
+
+blockUserSendCasinoFx.use((message) => {
+  scheduler.createNote({
+    note: "blockSendCasino",
+    data: {
+      chatId: message.chat.id,
+      userId: message.from.id,
+    },
+    timeout: BLOCK_SEND_CASINO,
+  });
+});
+
+checkHasCasinoGame.use((message) => {
+  const task = scheduler.find((task) => {
+    if (task.type === "note" && task.name === "casinoGame") {
+      return (
+        // @ts-ignore
+        task.data.messageId === message.reply_to_message?.message_id &&
+        task.data.userId === message.from?.id
+      );
+    }
+  });
+  return {
+    gameId: task?.id,
+    message,
+  };
 });

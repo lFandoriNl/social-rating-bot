@@ -1,6 +1,8 @@
 import { Message } from "typegram";
+import { ExtraReplyMessage } from "telegraf/typings/telegram-types";
 
 import { createEffect } from "effector-root";
+import { TG } from "../types";
 
 export const removeMessageFx = createEffect<Message, void>();
 export const removeMessageAfterTimeoutFx = createEffect<
@@ -8,6 +10,6 @@ export const removeMessageAfterTimeoutFx = createEffect<
   void
 >();
 export const replyToMessageFx = createEffect<
-  { message: Message; text: string },
-  void
+  { message: TG["message"]; text: string; extra?: ExtraReplyMessage },
+  Message.TextMessage
 >();

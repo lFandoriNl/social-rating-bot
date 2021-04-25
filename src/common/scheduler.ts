@@ -2,8 +2,8 @@ import * as path from "path";
 
 import { bot } from "../bot";
 
+import { createScheduler } from "../lib/scheduler";
 import { rootFolder } from "../constants/path";
-import { createTaskRunner } from "../lib/task-runner";
 
 const tasks = {
   removeMessage: async ({
@@ -21,7 +21,7 @@ const tasks = {
   },
 };
 
-export const taskRunner = createTaskRunner({
+export const scheduler = createScheduler({
   tasks,
   filepath: path.join(rootFolder, "storage", "timeout-tasks.json"),
 });

@@ -1,7 +1,8 @@
 import * as fs from "fs/promises";
+import { nanoid } from "nanoid";
 
 type Task<T> = {
-  id: number;
+  id: string;
   type: "task";
   name: T;
   data: any;
@@ -11,7 +12,7 @@ type Task<T> = {
 };
 
 type Note = {
-  id: number;
+  id: string;
   type: "note";
   name: string;
   data: any;
@@ -21,6 +22,7 @@ type Note = {
 };
 
 type SavedTask<T> = {
+  id: string;
   type: Task<T>["type"];
   name: Task<T>["name"];
   data: any;
@@ -28,6 +30,7 @@ type SavedTask<T> = {
 };
 
 type SavedNote = {
+  id: string;
   type: Note["type"];
   name: Note["name"];
   data: any;
@@ -35,27 +38,28 @@ type SavedNote = {
 };
 
 type CreateTask<T> = {
+  id?: string;
   task: T;
   data: any;
   timeout: number;
 };
 
 type CreateNote = {
+  id?: string;
   note: string;
   data: any;
   timeout: number;
 };
-
-let taskId = 0;
 
 function createTaskLocal<T>(
   name: T,
   fn: Function,
   data: any,
   ms: number,
-  onEnd: (id: Task<T>["id"]) => void
+  onEnd: (id: Task<T>["id"]) => void,
+  mainId?: string
 ): Task<T> {
-  const id = ++taskId;
+  const id = mainId || nanoid();
   const startTime = Date.now();
 
   const timer = setTimeout(() => {
@@ -78,9 +82,10 @@ function createNoteLocal(
   name: string,
   data: any,
   ms: number,
-  onEnd: (id: Note["id"]) => void
+  onEnd: (id: Note["id"]) => void,
+  mainId?: string
 ): Note {
-  const id = ++taskId;
+  const id = mainId || nanoid();
   const startTime = Date.now();
 
   const timer = setTimeout(() => {
@@ -105,7 +110,7 @@ type TaskRunnerOptions<T extends string> = {
   filepath: string;
 };
 
-export function createTaskRunner<T extends string>({
+export function createScheduler<T extends string>({
   tasks: configTasks,
   filepath,
 }: TaskRunnerOptions<T>) {
@@ -113,28 +118,28 @@ export function createTaskRunner<T extends string>({
 
   const getTasks = () => tasks;
 
-  const isExistTask = (id: number) => {
+  const isExistTask = (id: string) => {
     return Boolean(getTasks().find((task) => task.id === id));
   };
 
-  const createTask = ({ task: name, data, timeout }: CreateTask<T>) => {
+  const createTask = ({ id, task: name, data, timeout }: CreateTask<T>) => {
     const fn = configTasks[name];
-    const task = createTaskLocal(name, fn, data, timeout, remove);
+    const task = createTaskLocal(name, fn, data, timeout, remove, id);
 
     tasks.push(task);
 
     return task.id;
   };
 
-  const createNote = ({ note: name, data, timeout }: CreateNote) => {
-    const note = createNoteLocal(name, data, timeout, remove);
+  const createNote = ({ id, note: name, data, timeout }: CreateNote) => {
+    const note = createNoteLocal(name, data, timeout, remove, id);
 
     tasks.push(note);
 
     return note.id;
   };
 
-  const remove = (id: number) => {
+  const remove = (id: string) => {
     tasks = getTasks().filter((task) => {
       if (task.id === id) {
         clearTimeout(task.timer);
@@ -166,6 +171,7 @@ export function createTaskRunner<T extends string>({
           const timeLeft = Math.abs(Date.now() - task.startTime - task.time);
           if (task.type === "task") {
             return {
+              id: task.id,
               type: task.type,
               name: task.name,
               data: task.data,
@@ -175,6 +181,7 @@ export function createTaskRunner<T extends string>({
 
           if (task.type === "note") {
             return {
+              id: task.id,
               type: task.type,
               name: task.name,
               data: task.data,
@@ -200,6 +207,7 @@ export function createTaskRunner<T extends string>({
       restoreTasks.forEach((task) => {
         if (task.type === "task") {
           return createTask({
+            id: task.id,
             task: task.name,
             data: task.data,
             timeout: task.timeLeft,
@@ -208,6 +216,7 @@ export function createTaskRunner<T extends string>({
 
         if (task.type === "note") {
           return createNote({
+            id: task.id,
             note: task.name,
             data: task.data,
             timeout: task.timeLeft,

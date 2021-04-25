@@ -7,12 +7,16 @@ import { socialCredit } from "./services/social-credit";
 import { UserModel } from "./models/user-model";
 import { ChatModel } from "./models/chat-model";
 
-import { taskRunner } from "./common/task-runner";
+import { scheduler } from "./common/scheduler";
 import { createQueue } from "./lib/queue";
 
 import { commandRateEvent, commandUnRateEvent } from "./services/command-rate";
 import { messageEvent } from "./services/message";
-import { diceRollEvent, runRouletteEvent } from "./services/roll-action";
+import {
+  runCasinoEvent,
+  diceRollEvent,
+  runRouletteEvent,
+} from "./services/roll-action";
 
 import { bot } from "./bot";
 import { connectDB } from "./db";
@@ -37,8 +41,9 @@ const scope = fork(root);
 const commands = [
   { command: "rate", description: "Повысить рейтинг" },
   { command: "unrate", description: "Понизить рейтинг" },
+  { command: "casino", description: "Казино" },
   { command: "stat", description: "Показать рейтинг группы" },
-  { command: "run_roulette", description: "Запустить рулетку (only admin)" },
+  { command: "roulette", description: "Запустить рулетку (only admin)" },
   { command: "roll_dice", description: "Испытать удачу" },
   { command: "help_full", description: "Полная помощь" },
   { command: "help", description: "Помощь" },
@@ -84,13 +89,14 @@ bot.command("help_full", (ctx) => {
     "3. Между отправкой рейтинга у каждого юзера таймаут на 3 минуты на отправку следующей команды",
     "4. На одно смс можно отправить только только одно повышение и одно понижение рейтинга",
     "5. Сообщения от команды /roll_dice удаляться спустя 30 секунд",
-    "6. /run_roulette в рулетке разыгрывается рейтинг который равен 5 стикерам для одного учасника рейтинга, запустить может только админ",
-    "7. Таймаут на отправку рулетки 10 минут",
+    "6. /roulette в рулетке разыгрывается рейтинг который равен 5 стикерам для одного учасника рейтинга, запустить может только админ",
+    "7. Таймаут на отправку рулетки 30 минут",
     '\n<a href="https://github.com/lFandoriNl/social-rating-bot">Репозиторий бота</a>',
   ].join("\n");
 
   ctx.reply(help, {
     parse_mode: "HTML",
+    disable_web_page_preview: true,
   });
 });
 
@@ -122,11 +128,11 @@ bot.command("stat", async (ctx) => {
   ctx.reply(`<pre>Рейтинг группы\n${table}</pre>`, { parse_mode: "HTML" });
 });
 
-bot.command("roll_dice", (ctx) => {
-  diceRollEvent(ctx.update.message);
+bot.command("casino", (ctx) => {
+  runCasinoEvent(ctx.update.message);
 });
 
-bot.command("run_roulette", async (ctx) => {
+bot.command("roulette", async (ctx) => {
   const isAdmin = await checkAdministratorFx(ctx.update.message);
 
   if (isAdmin) {
@@ -137,6 +143,10 @@ bot.command("run_roulette", async (ctx) => {
     message: ctx.update.message,
     text: "Запускать рулетку может только админ",
   });
+});
+
+bot.command("roll_dice", (ctx) => {
+  diceRollEvent(ctx.update.message);
 });
 
 bot.command("rate", (ctx) => {
@@ -164,7 +174,7 @@ bot.on("message", (ctx) => {
 });
 
 process.on("SIGUSR2", () => {
-  taskRunner.save().then(() => {
+  scheduler.save().then(() => {
     process.exit();
   });
 });
@@ -172,7 +182,7 @@ process.on("SIGUSR2", () => {
 process.once("SIGINT", () => {
   bot.stop("SIGINT");
 
-  taskRunner.save().then(() => {
+  scheduler.save().then(() => {
     process.exit();
   });
 });
@@ -180,7 +190,7 @@ process.once("SIGINT", () => {
 process.once("SIGTERM", () => {
   bot.stop("SIGTERM");
 
-  taskRunner.save().then(() => {
+  scheduler.save().then(() => {
     process.exit();
   });
 });

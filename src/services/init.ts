@@ -5,3 +5,4 @@ import "./user/init";
 import "./message/init";
 import "./message-action/init";
 import "./roll-action/init";
+import "./scheduler/init";

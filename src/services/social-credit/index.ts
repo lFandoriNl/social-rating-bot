@@ -1,5 +1,4 @@
 import { createEvent, createEffect } from "effector-root";
-import { User } from "../../models/user-model";
 
 import { AddSocialRating } from "../types";
 

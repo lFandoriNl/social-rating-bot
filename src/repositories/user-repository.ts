@@ -10,7 +10,7 @@ type UserRequestExtended = UserRequest & { chatId: string; rating: number };
 const createUserFx = createEffect<UserRequestExtended, User>();
 const getUserByIdFx = createEffect<UserRequestExtended, User | null>();
 const getUserByIdOrCreateFx = createEffect<UserRequestExtended, User>();
-const getUserByChatId = createEffect<Chat["chatId"], User[] | null>();
+const getUsersByChatId = createEffect<Chat["chatId"], User[] | null>();
 
 createUserFx.use(async (data) => {
   const user = new UserModel({
@@ -40,7 +40,7 @@ getUserByIdOrCreateFx.use(async (data) => {
   return await createUserFx(data);
 });
 
-getUserByChatId.use(async (chatId) => {
+getUsersByChatId.use(async (chatId) => {
   const chat = await ChatModel.findOne({ chatId });
 
   if (!chat) return null;
@@ -52,5 +52,5 @@ export const userRepository = {
   createUserFx,
   getUserByIdFx,
   getUserByIdOrCreateFx,
-  getUserByChatId,
+  getUsersByChatId,
 };

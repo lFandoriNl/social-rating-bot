@@ -5,6 +5,11 @@ import { MessageRating, TG } from "../types";
 
 export const messageEvent = createEvent<TG["message"]>();
 
+export const messageReply = messageEvent.filter({
+  // @ts-ignore
+  fn: (message) => Boolean(message.reply_to_message),
+});
+
 export const messageSticker = messageEvent.filter({
   // @ts-ignore
   fn: (message) => Boolean(message.sticker),
