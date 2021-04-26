@@ -214,12 +214,14 @@ runCasinoFx.use(async (message) => {
   const startCasinoMessage = await replyToMessageFx({
     message,
     text: [
-      `Добро пожаловать в казино <b>${message.from.first_name} ${message.from.last_name}</b>, где ставка твой социальный рейтинг!\n`,
+      `Добро пожаловать в казино <b>${message.from.first_name || ""} ${
+        message.from.last_name || ""
+      }</b>, где ставка твой социальный рейтинг!\n`,
       "Отправь в течении минуты реплаем к этому сообщению свою ставку в формате:",
       "{твоя_ставка} {какой_кубик_выпадет}\n",
       'Для примера: "40 6" - значение кубика от 1 до 6',
       "Ставка может быть от 1 до 100, а кубик от 1 до 6\n",
-      "Если угадаешь с кубиком получишь <b>х5</b> рейтинга от своей ставки, если нет то потеряешь свой рейтинг!",
+      "Если угадаешь с кубиком получишь <b>х4</b> рейтинга от своей ставки, если нет то потеряешь свой рейтинг!",
     ].join("\n"),
     extra: {
       parse_mode: "HTML",
@@ -257,7 +259,8 @@ const prepareCasinoGame = sample({
       .split(" ")
       .filter(Boolean)
       .map(Number)
-      .filter(Number);
+      .filter(Number)
+      .map(Math.round);
 
     return {
       gameId,
@@ -316,13 +319,13 @@ rollDiceCasinoGameFx.use(async ({ gameId, ratingBet, diceBet, message }) => {
   if (diceResult === diceBet) {
     await replyToMessageFx({
       message,
-      text: `Джекпот! Забирай свои ${ratingBet * 3} рейтинга 🎉`,
+      text: `Джекпот! Забирай свои ${ratingBet * 4} рейтинга 🎉`,
     });
 
     if (user) {
       console.log("Casino before win:", user.rating, user.name);
       await user.updateOne({
-        rating: user.rating + ratingBet * 5,
+        rating: user.rating + ratingBet * 4,
       });
 
       const updatedUser = await UserModel.findById(user._id);
@@ -344,6 +347,6 @@ rollDiceCasinoGameFx.use(async ({ gameId, ratingBet, diceBet, message }) => {
 
   await replyToMessageFx({
     message,
-    text: `Не повезло! Ты потерял свои ${ratingBet} рейтинга, приходи в следующий раз может повезет 🍀`,
+    text: `Не повезло! Ты потерял свои ${ratingBet} рейтинга, приходи в следующий раз, может повезет 🍀`,
   });
 });
