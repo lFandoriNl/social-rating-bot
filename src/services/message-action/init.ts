@@ -1,3 +1,5 @@
+import { ExtraReplyMessage } from "telegraf/typings/telegram-types";
+
 import {
   removeMessageAfterTimeoutFx,
   removeMessageFx,
@@ -6,6 +8,7 @@ import {
 
 import { bot } from "../../bot";
 import { scheduler } from "../../common/scheduler";
+import { TG } from "../types";
 
 removeMessageFx.use(async (message) => {
   await bot.telegram.deleteMessage(message.chat.id, message.message_id);
@@ -31,3 +34,26 @@ replyToMessageFx.use(async ({ message, text, extra = {} }) => {
     ...extra,
   });
 });
+
+export async function sendMessage(
+  message: TG["message"],
+  text: string,
+  extra?: ExtraReplyMessage
+) {
+  try {
+    return await bot.telegram.sendMessage(message.chat.id, text, extra);
+  } catch (error) {}
+}
+
+export async function replyToMessage(
+  message: TG["message"],
+  text: string,
+  extra?: ExtraReplyMessage
+) {
+  try {
+    return await bot.telegram.sendMessage(message.chat.id, text, {
+      reply_to_message_id: message.message_id,
+      ...extra,
+    });
+  } catch (error) {}
+}

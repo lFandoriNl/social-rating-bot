@@ -1,4 +1,7 @@
 import { createEvent, createEffect } from "effector-root";
+import { getRangByRating } from "../../common/social-rating-ranks";
+import { UserModel } from "../../models/user-model";
+import { chatRepository } from "../../repositories/chat-repository";
 
 import { AddSocialRating } from "../types";
 
@@ -15,3 +18,23 @@ export const socialCredit = {
   decrease,
   getTopUsersByRatingFx,
 };
+
+export async function getTopUsersByRating({ chatId }: { chatId: number }) {
+  try {
+    const chat = await chatRepository.getChatByIdFx(chatId);
+
+    if (!chat) return [];
+
+    const users = await UserModel.find({ chat: chat._id }).sort({
+      rating: "desc",
+    });
+
+    return users
+      .filter((user) => user.rating !== 0)
+      .map((user) => ({
+        name: user.name,
+        rank: getRangByRating(user.rating).text,
+        rating: user.rating,
+      }));
+  } catch (error) {}
+}

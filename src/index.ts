@@ -24,8 +24,9 @@ import { connectDB } from "./db";
 import { checkAdministratorFx } from "./services/admin";
 import { replyToMessageFx } from "./services/message-action";
 
-import "./services/init";
 import "./new-services/init";
+
+import "./services/init";
 
 import asTable = require("as-table");
 
@@ -42,9 +43,9 @@ const scope = fork(root);
 const commands = [
   { command: "rate", description: "Повысить рейтинг" },
   { command: "unrate", description: "Понизить рейтинг" },
-  { command: "casino", description: "Казино" },
+  // { command: "casino", description: "Казино" },
   { command: "stat", description: "Показать рейтинг группы" },
-  { command: "roulette", description: "Запустить рулетку (only admin)" },
+  // { command: "roulette", description: "Запустить рулетку (only admin)" },
   { command: "roll_dice", description: "Испытать удачу" },
   { command: "help_full", description: "Полная помощь" },
   { command: "help", description: "Помощь" },
@@ -102,50 +103,22 @@ bot.command("help_full", (ctx) => {
   });
 });
 
-bot.command("stat", async (ctx) => {
-  const chatId = ctx.chat.id;
+// bot.command("casino", (ctx) => {
+//   runCasinoEvent(ctx.update.message);
+// });
 
-  const users = await socialCredit.getTopUsersByRatingFx({ chatId });
+// bot.command("roulette", async (ctx) => {
+//   const isAdmin = await checkAdministratorFx(ctx.update.message);
 
-  if (!users) {
-    return ctx.reply(
-      "Черт, что-то пошло не так, зовите моих господинов @maximkoylo и @DmitryPLSKN"
-    );
-  }
+//   if (isAdmin) {
+//     return runRouletteEvent(ctx.update.message);
+//   }
 
-  if (users.length === 0) {
-    return ctx.reply("Рейтинг группы отсутствует");
-  }
-
-  const table = asTable([
-    ...users.map((user, index) => {
-      const rating = user.rating.toString().startsWith("-")
-        ? user.rating
-        : ` ${user.rating}`;
-
-      return [`${index + 1}.`, user.rank, rating, user.name];
-    }),
-  ]);
-
-  ctx.reply(`<pre>Рейтинг группы\n${table}</pre>`, { parse_mode: "HTML" });
-});
-
-bot.command("casino", (ctx) => {
-  runCasinoEvent(ctx.update.message);
-});
-
-bot.command("roulette", async (ctx) => {
-  const isAdmin = await checkAdministratorFx(ctx.update.message);
-
-  if (isAdmin) {
-    return runRouletteEvent(ctx.update.message);
-  }
-
-  replyToMessageFx({
-    message: ctx.update.message,
-    text: "Запускать рулетку может только админ",
-  });
-});
+//   replyToMessageFx({
+//     message: ctx.update.message,
+//     text: "Запускать рулетку может только админ",
+//   });
+// });
 
 bot.command("roll_dice", (ctx) => {
   diceRollEvent(ctx.update.message);
@@ -167,13 +140,15 @@ bot.command("unrate", (ctx) => {
   });
 });
 
-bot.on("message", (ctx) => {
-  // if (ctx.chat.id === -1001379121758) return;
+setTimeout(() => {
+  bot.on("message", (ctx) => {
+    // if (ctx.chat.id === -1001379121758) return;
 
-  queue.push(async () => {
-    await allSettled(messageEvent, { scope, params: ctx.update.message });
+    queue.push(async () => {
+      await allSettled(messageEvent, { scope, params: ctx.update.message });
+    });
   });
-});
+}, 1000);
 
 process.on("SIGUSR2", () => {
   scheduler.save().then(() => {

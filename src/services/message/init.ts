@@ -74,10 +74,18 @@ forward({
 
 const { messageToUser, messageToBot } = split(canSendRating, {
   messageToUser: ({ params: { message } }) => {
+    if (message.chat.type === "private") {
+      return true;
+    }
+
     // @ts-ignore
     return !message.reply_to_message.from.is_bot;
   },
   messageToBot: ({ params: { message } }) => {
+    if (message.chat.type === "private") {
+      return false;
+    }
+
     // @ts-ignore
     return message.reply_to_message.from.is_bot;
   },
