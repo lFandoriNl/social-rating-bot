@@ -1,6 +1,9 @@
 import { createEffect } from "effector-root";
+import { ChatMember } from "telegram-typings";
+import { TG } from "../types";
 
-import { ChatMember, Message } from "typegram";
-
-export const getChatAdministratorsFx = createEffect<Message, ChatMember[]>();
-export const checkAdministratorFx = createEffect<Message, boolean>();
+export const getChatAdministratorsFx = createEffect<
+  TG["message"],
+  ChatMember[]
+>();
+export const checkAdministratorFx = createEffect<TG["message"], boolean>();

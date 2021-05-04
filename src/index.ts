@@ -1,17 +1,10 @@
 require("dotenv").config();
 
-import { allSettled, fork, root } from "effector-root";
-
-import { socialCredit } from "./services/social-credit";
-
 import { UserModel } from "./models/user-model";
 import { ChatModel } from "./models/chat-model";
 
 import { scheduler } from "./common/scheduler";
-import { createQueue } from "./lib/queue";
 
-import { commandRateEvent, commandUnRateEvent } from "./services/command-rate";
-import { messageEvent } from "./services/message";
 import {
   runCasinoEvent,
   diceRollEvent,
@@ -24,21 +17,15 @@ import { connectDB } from "./db";
 import { checkAdministratorFx } from "./services/admin";
 import { replyToMessageFx } from "./services/message-action";
 
-import "./new-services/init";
+import { messageInit } from "./new-services/init";
 
 import "./services/init";
-
-import asTable = require("as-table");
 
 connectDB().then(async () => {
   bot.launch();
   // const chat = await ChatModel.findOne({ chatId: -1001459291502 });
   // console.log(JSON.stringify(await UserModel.find({ chat: chat?._id })));
 });
-
-const queue = createQueue();
-
-const scope = fork(root);
 
 const commands = [
   { command: "rate", description: "Повысить рейтинг" },
@@ -120,35 +107,23 @@ bot.command("help_full", (ctx) => {
 //   });
 // });
 
-bot.command("roll_dice", (ctx) => {
-  diceRollEvent(ctx.update.message);
-});
+// bot.command("rate", (ctx) => {
+//   // if (ctx.chat.id === -1001379121758) return;
 
-bot.command("rate", (ctx) => {
-  // if (ctx.chat.id === -1001379121758) return;
+//   messageQueue.push(async () => {
+//     await allSettled(commandRateEvent, { scope, params: ctx.message });
+//   });
+// });
 
-  queue.push(async () => {
-    await allSettled(commandRateEvent, { scope, params: ctx.update.message });
-  });
-});
+// bot.command("unrate", (ctx) => {
+//   // if (ctx.chat.id === -1001379121758) return;
 
-bot.command("unrate", (ctx) => {
-  // if (ctx.chat.id === -1001379121758) return;
+//   messageQueue.push(async () => {
+//     await allSettled(commandUnRateEvent, { scope, params: ctx.message });
+//   });
+// });
 
-  queue.push(async () => {
-    await allSettled(commandUnRateEvent, { scope, params: ctx.update.message });
-  });
-});
-
-setTimeout(() => {
-  bot.on("message", (ctx) => {
-    // if (ctx.chat.id === -1001379121758) return;
-
-    queue.push(async () => {
-      await allSettled(messageEvent, { scope, params: ctx.update.message });
-    });
-  });
-}, 1000);
+messageInit();
 
 process.on("SIGUSR2", () => {
   scheduler.save().then(() => {
@@ -157,7 +132,7 @@ process.on("SIGUSR2", () => {
 });
 
 process.once("SIGINT", () => {
-  bot.stop("SIGINT");
+  bot.stop(() => {});
 
   scheduler.save().then(() => {
     process.exit();
@@ -165,7 +140,7 @@ process.once("SIGINT", () => {
 });
 
 process.once("SIGTERM", () => {
-  bot.stop("SIGTERM");
+  bot.stop(() => {});
 
   scheduler.save().then(() => {
     process.exit();

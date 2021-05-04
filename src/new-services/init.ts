@@ -1,2 +1,3 @@
 import "./stat";
-import "./message";
+import "./roll-dice";
+export { messageInit } from "./message";

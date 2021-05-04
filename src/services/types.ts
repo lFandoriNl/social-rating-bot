@@ -1,16 +1,21 @@
-import { Update } from "typegram";
+import { IncomingMessage } from "telegraf/typings/telegram-types";
 
 export type TG = {
-  message: Update.MessageUpdate["message"];
+  message: IncomingMessage;
 };
 
 export type MessageRating = {
   type: "increase" | "decrease";
-  message: TG["message"];
+  message: IncomingMessage;
 };
 
 export type ChatRequest = { id: number; name: string };
-export type UserRequest = { id: number; name: string; username: string };
+export type UserRequest = {
+  id: number;
+  name: string;
+  username: string;
+  dateLastRating: Date;
+};
 export type MessageRequest = { id: number; date: number };
 
 export type AddSocialRating = {

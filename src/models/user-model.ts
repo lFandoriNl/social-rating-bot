@@ -6,6 +6,7 @@ export interface User extends mongoose.Document {
   username: string;
   rating: number;
   level: number;
+  dateLastRating: Date;
   chat: string;
 }
 
@@ -15,6 +16,7 @@ const userSchema = new mongoose.Schema({
   username: String,
   rating: Number,
   level: Number,
+  dateLastRating: Date,
   chat: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Chat",

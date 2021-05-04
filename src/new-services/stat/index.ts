@@ -3,7 +3,7 @@ import {
   filter,
   ignoreElements,
   map,
-  switchMap,
+  mergeMap,
   throttleTime,
 } from "rxjs/operators";
 
@@ -28,13 +28,15 @@ const chatSubscriptions: Array<{
 }> = [];
 
 function listenOnStatCommand() {
-  const sub = new ReplaySubject<TG["message"]>(1);
+  const statCommand$ = new ReplaySubject<TG["message"]>(1);
 
   bot.command("stat", (ctx) => {
-    sub.next(ctx.update.message);
+    if (ctx.message) {
+      statCommand$.next(ctx.message);
+    }
   });
 
-  return sub;
+  return statCommand$;
 }
 
 const statCommand$ = listenOnStatCommand();
@@ -44,28 +46,28 @@ statCommand$.subscribe((message) => {
     return;
   }
 
-  const subscription = statCommand$
+  const subscription$ = statCommand$
     .pipe(
-      filter((sourceMessage) => sourceMessage.chat.id === message.chat.id),
+      filter((msg) => msg.chat.id === message.chat.id),
       throttleTime(60 * 1000),
-      switchMap((message) =>
-        from(getTopUsersByRating({ chatId: message.chat.id })).pipe(
-          map((users) => ({ message, users }))
+      mergeMap((msg) =>
+        from(getTopUsersByRating({ chatId: msg.chat.id })).pipe(
+          map((users) => ({ msg, users }))
         )
       ),
-      switchMap(({ message, users }) => {
+      mergeMap(({ msg, users }) => {
         if (!users) {
-          return from(replyToMessage(message, fail())).pipe(ignoreElements());
+          return from(replyToMessage(msg, fail())).pipe(ignoreElements());
         }
 
         if (users.length === 0) {
-          return from(replyToMessage(message, empty())).pipe(ignoreElements());
+          return from(replyToMessage(msg, empty())).pipe(ignoreElements());
         }
 
-        return of({ message, users });
+        return of({ msg, users });
       }),
-      map(({ message, users }) => ({
-        message,
+      map(({ msg, users }) => ({
+        msg,
         table: asTable([
           ...users.map((user, index) => {
             const rating = user.rating.toString().startsWith("-")
@@ -76,9 +78,9 @@ statCommand$.subscribe((message) => {
           }),
         ]),
       })),
-      switchMap(({ message, table }) =>
+      mergeMap(({ msg, table }) =>
         from(
-          sendMessage(message, stats(table), {
+          sendMessage(msg, stats(table), {
             parse_mode: "HTML",
           })
         )
@@ -88,6 +90,6 @@ statCommand$.subscribe((message) => {
 
   chatSubscriptions.push({
     chatId: message.chat.id,
-    subscription,
+    subscription: subscription$,
   });
 });

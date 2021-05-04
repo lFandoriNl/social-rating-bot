@@ -18,6 +18,7 @@ createUserFx.use(async (data) => {
     name: data.name,
     username: data.username,
     rating: data.rating,
+    dateLastRating: data.dateLastRating,
     level: 0,
     chat: data.chatId,
   });

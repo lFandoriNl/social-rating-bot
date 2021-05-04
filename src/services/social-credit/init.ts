@@ -59,12 +59,14 @@ addRatingFx.use(async (data) => {
     ...data.user,
     chatId: chat._id,
     rating: 0,
+    dateLastRating: data.user.dateLastRating,
   });
 
   await user.updateOne({
     name: data.user.name,
     username: data.user.username,
     rating: user.rating + rating,
+    dateLastRating: data.user.dateLastRating,
   });
 });
 

@@ -1,352 +1,332 @@
-import { forward, guard, sample, split } from "effector-root";
+// import { forward, guard, sample, split } from "effector-root";
 
-import { bot } from "../../bot";
+// import { bot } from "../../bot";
 
-import { delay } from "../../lib/delay";
-import { randomRange } from "../../lib/random";
+// import { delay } from "../../lib/delay";
+// import { randomRange } from "../../lib/random";
 
-import { userRepository } from "../../repositories/user-repository";
-import { UserModel } from "../../models/user-model";
+// import { userRepository } from "../../repositories/user-repository";
+// import { UserModel } from "../../models/user-model";
 
-import {
-  REMOVE_DICE_ROLL,
-  WAIT_SEND_BET_CASINO,
-} from "../../constants/timeouts";
+// import {
+//   REMOVE_DICE_ROLL,
+//   WAIT_SEND_BET_CASINO,
+// } from "../../constants/timeouts";
 
-import { canChatSendRouletteFx, blockChatSendRouletteFx } from "../chat";
-import {
-  canUserSendCasinoFx,
-  blockUserSendCasinoFx,
-  checkHasCasinoGame,
-} from "../user";
-import {
-  removeMessageAfterTimeoutFx,
-  removeMessageFx,
-  replyToMessageFx,
-} from "../message-action";
+// import { canChatSendRouletteFx, blockChatSendRouletteFx } from "../chat";
+// import {
+//   canUserSendCasinoFx,
+//   blockUserSendCasinoFx,
+//   checkHasCasinoGame,
+// } from "../user";
+// import {
+//   removeMessageAfterTimeoutFx,
+//   removeMessageFx,
+//   replyToMessageFx,
+// } from "../message-action";
 
-import { messageReply } from "../message";
-import { scheduler } from "../../common/scheduler";
-import { removeSchedulerTaskByIdFx } from "../scheduler";
-import { chatRepository } from "../../repositories/chat-repository";
+// import { scheduler } from "../../common/scheduler";
+// import { removeSchedulerTaskByIdFx } from "../scheduler";
+// import { chatRepository } from "../../repositories/chat-repository";
 
-import {
-  diceRollEvent,
-  diceRollFx,
-  runRouletteEvent,
-  runRouletteFx,
-  runCasinoEvent,
-  runCasinoFx,
-  rollDiceCasinoGameFx,
-  rollDiceAndReturnValueFx,
-} from "./index";
+// import {
+//   diceRollEvent,
+//   diceRollFx,
+//   runRouletteEvent,
+//   runRouletteFx,
+//   runCasinoEvent,
+//   runCasinoFx,
+//   rollDiceCasinoGameFx,
+//   rollDiceAndReturnValueFx,
+// } from "./index";
 
-import { TG } from "../types";
+// import { TG } from "../types";
 
-rollDiceAndReturnValueFx.use(async ({ message, extra = {} }) => {
-  const diceRollMessage = await bot.telegram.sendDice(message.chat.id, {
-    emoji: "🎲",
-    ...extra,
-  });
-  return [diceRollMessage.dice.value, diceRollMessage];
-});
+// rollDiceAndReturnValueFx.use(async ({ message, extra = {} }) => {
+//   const diceRollMessage = await bot.telegram.sendDice(message.chat.id, {
+//     // @ts-ignore
+//     emoji: "🎲",
+//     ...extra,
+//   });
+//   return [diceRollMessage.dice.value, diceRollMessage];
+// });
 
-forward({
-  from: diceRollEvent,
-  to: diceRollFx,
-});
+// forward({
+//   from: runRouletteEvent,
+//   to: canChatSendRouletteFx,
+// });
 
-diceRollFx.use(async (message) => {
-  const variant = ["🎲", "🎯", "🏀", "🎳", "🎰"];
+// const { canSendRoulette, canNotSendRoulette } = split(
+//   canChatSendRouletteFx.done,
+//   {
+//     canSendRoulette: ({ result }) => result,
+//     canNotSendRoulette: ({ result }) => !result,
+//   }
+// );
 
-  const diceRollMessage = await bot.telegram.sendDice(message.chat.id, {
-    emoji: variant[randomRange(0, variant.length - 1)],
-    reply_to_message_id: message.message_id,
-  });
+// forward({
+//   from: canSendRoulette.map(({ params }) => params),
+//   to: [runRouletteFx, removeMessageFx, blockChatSendRouletteFx],
+// });
 
-  await removeMessageAfterTimeoutFx({ message, ms: REMOVE_DICE_ROLL });
-  await removeMessageAfterTimeoutFx({
-    message: diceRollMessage,
-    ms: REMOVE_DICE_ROLL,
-  });
-});
+// forward({
+//   from: canNotSendRoulette,
+//   to: removeMessageFx.prepend<{ params: TG["message"] }>(
+//     ({ params }) => params
+//   ),
+// });
 
-forward({
-  from: runRouletteEvent,
-  to: canChatSendRouletteFx,
-});
+// runRouletteFx.use(async (message) => {
+//   const users = await userRepository.getUsersByChatId(message.chat.id);
 
-const { canSendRoulette, canNotSendRoulette } = split(
-  canChatSendRouletteFx.done,
-  {
-    canSendRoulette: ({ result }) => result,
-    canNotSendRoulette: ({ result }) => !result,
-  }
-);
+//   if (!users) {
+//     await bot.telegram.sendMessage(
+//       message.chat.id,
+//       "Рейтинг группы отсутствует"
+//     );
+//     return;
+//   }
 
-forward({
-  from: canSendRoulette.map(({ params }) => params),
-  to: [runRouletteFx, removeMessageFx, blockChatSendRouletteFx],
-});
+//   if (users.length < 2) {
+//     await bot.telegram.sendMessage(
+//       message.chat.id,
+//       "В рейтинге должно быть как минимум два человека"
+//     );
+//     return;
+//   }
 
-forward({
-  from: canNotSendRoulette,
-  to: removeMessageFx.prepend<{ params: TG["message"] }>(
-    ({ params }) => params
-  ),
-});
+//   const winnerUser = users[randomRange(0, users.length - 1)];
 
-runRouletteFx.use(async (message) => {
-  const users = await userRepository.getUsersByChatId(message.chat.id);
+//   await bot.telegram.sendMessage(
+//     message.chat.id,
+//     [
+//       "<b>Начинаем рулетку, ставка - социальный рейтинг!</b>\n",
+//       `Наша жертва ${winnerUser.name}`,
+//       "\nВыпавший кубик решит его/ее судьбу!",
+//       "1..3 - прогорит, 4..6 - победит",
+//     ].join("\n"),
+//     {
+//       parse_mode: "HTML",
+//     }
+//   );
 
-  if (!users) {
-    await bot.telegram.sendMessage(
-      message.chat.id,
-      "Рейтинг группы отсутствует"
-    );
-    return;
-  }
+//   await delay(2000);
 
-  if (users.length < 2) {
-    await bot.telegram.sendMessage(
-      message.chat.id,
-      "В рейтинге должно быть как минимум два человека"
-    );
-    return;
-  }
+//   const [decisionValue] = await rollDiceAndReturnValueFx({ message });
 
-  const winnerUser = users[randomRange(0, users.length - 1)];
+//   await delay(3000);
 
-  await bot.telegram.sendMessage(
-    message.chat.id,
-    [
-      "<b>Начинаем рулетку, ставка - социальный рейтинг!</b>\n",
-      `Наша жертва ${winnerUser.name}`,
-      "\nВыпавший кубик решит его/ее судьбу!",
-      "1..3 - прогорит, 4..6 - победит",
-    ].join("\n"),
-    {
-      parse_mode: "HTML",
-    }
-  );
+//   if (decisionValue >= 4) {
+//     await bot.telegram.sendMessage(
+//       message.chat.id,
+//       `<b>${winnerUser.name}</b> тебе повезло! Получаешь одобрение от Надзирателя 👍`,
+//       {
+//         parse_mode: "HTML",
+//       }
+//     );
 
-  await delay(2000);
+//     console.log("Before win:", winnerUser.rating, winnerUser.name);
+//     await winnerUser.updateOne({
+//       rating: winnerUser.rating + 100,
+//     });
 
-  const [decisionValue] = await rollDiceAndReturnValueFx({ message });
+//     const updatedUser = await UserModel.findById(winnerUser._id);
+//     console.log("After win:", updatedUser?.rating, winnerUser.name);
+//   }
 
-  await delay(3000);
+//   if (decisionValue <= 3) {
+//     await bot.telegram.sendMessage(
+//       message.chat.id,
+//       `<b>${winnerUser.name}</b> ха не повезло! Надзиратель ухмыляется 👎`,
+//       {
+//         parse_mode: "HTML",
+//       }
+//     );
 
-  if (decisionValue >= 4) {
-    await bot.telegram.sendMessage(
-      message.chat.id,
-      `<b>${winnerUser.name}</b> тебе повезло! Получаешь одобрение от Надзирателя 👍`,
-      {
-        parse_mode: "HTML",
-      }
-    );
+//     console.log("Roulette before win:", winnerUser.rating, winnerUser.name);
+//     await winnerUser.updateOne({
+//       rating: winnerUser.rating - 100,
+//     });
 
-    console.log("Before win:", winnerUser.rating, winnerUser.name);
-    await winnerUser.updateOne({
-      rating: winnerUser.rating + 100,
-    });
+//     const updatedUser = await UserModel.findById(winnerUser._id);
+//     console.log("Roulette after win:", updatedUser?.rating, winnerUser.name);
+//   }
+// });
 
-    const updatedUser = await UserModel.findById(winnerUser._id);
-    console.log("After win:", updatedUser?.rating, winnerUser.name);
-  }
+// runRouletteFx.failData.watch((error) => console.log(error.message));
 
-  if (decisionValue <= 3) {
-    await bot.telegram.sendMessage(
-      message.chat.id,
-      `<b>${winnerUser.name}</b> ха не повезло! Надзиратель ухмыляется 👎`,
-      {
-        parse_mode: "HTML",
-      }
-    );
+// forward({
+//   from: runCasinoEvent,
+//   to: canUserSendCasinoFx,
+// });
 
-    console.log("Roulette before win:", winnerUser.rating, winnerUser.name);
-    await winnerUser.updateOne({
-      rating: winnerUser.rating - 100,
-    });
+// const { userExist, noUser } = split(canUserSendCasinoFx.done, {
+//   userExist: ({ result }) => result.hasUser,
+//   noUser: ({ result }) => !result.hasUser,
+// });
 
-    const updatedUser = await UserModel.findById(winnerUser._id);
-    console.log("Roulette after win:", updatedUser?.rating, winnerUser.name);
-  }
-});
+// forward({
+//   from: noUser,
+//   to: replyToMessageFx.prepend(({ params }) => ({
+//     message: params,
+//     text: "Вас нету в рейтинге группы",
+//   })),
+// });
 
-runRouletteFx.failData.watch((error) => console.log(error.message));
+// const { canSendCasino, canNotSendCasino } = split(userExist, {
+//   canSendCasino: ({ result }) => result.canSendCasino,
+//   canNotSendCasino: ({ result }) => !result.canSendCasino,
+// });
 
-forward({
-  from: runCasinoEvent,
-  to: canUserSendCasinoFx,
-});
+// forward({
+//   from: canSendCasino.map(({ params }) => params),
+//   to: [runCasinoFx, blockUserSendCasinoFx],
+// });
 
-const { userExist, noUser } = split(canUserSendCasinoFx.done, {
-  userExist: ({ result }) => result.hasUser,
-  noUser: ({ result }) => !result.hasUser,
-});
+// forward({
+//   from: canNotSendCasino,
+//   to: removeMessageFx.prepend<{ params: TG["message"] }>(
+//     ({ params }) => params
+//   ),
+// });
 
-forward({
-  from: noUser,
-  to: replyToMessageFx.prepend(({ params }) => ({
-    message: params,
-    text: "Вас нету в рейтинге группы",
-  })),
-});
+// runCasinoFx.use(async (message) => {
+//   const startCasinoMessage = await replyToMessageFx({
+//     message,
+//     text: [
+//       `Добро пожаловать в казино <b>${message.from!.first_name || ""} ${
+//         message.from!.last_name || ""
+//       }</b>, где ставка твой социальный рейтинг!\n`,
+//       "Отправь в течении минуты реплаем к этому сообщению свою ставку в формате:",
+//       "{твоя_ставка} {какой_кубик_выпадет}\n",
+//       'Для примера: "40 6" - значение кубика от 1 до 6',
+//       "Ставка может быть от 1 до 100, а кубик от 1 до 6\n",
+//       "Если угадаешь с кубиком получишь <b>х4</b> рейтинга от своей ставки, если нет то потеряешь свой рейтинг!",
+//     ].join("\n"),
+//     extra: {
+//       parse_mode: "HTML",
+//     },
+//   });
 
-const { canSendCasino, canNotSendCasino } = split(userExist, {
-  canSendCasino: ({ result }) => result.canSendCasino,
-  canNotSendCasino: ({ result }) => !result.canSendCasino,
-});
+//   scheduler.createNote({
+//     note: "casinoGame",
+//     data: {
+//       messageId: startCasinoMessage.message_id,
+//       userId: message.from!.id,
+//     },
+//     timeout: WAIT_SEND_BET_CASINO,
+//   });
+// });
 
-forward({
-  from: canSendCasino.map(({ params }) => params),
-  to: [runCasinoFx, blockUserSendCasinoFx],
-});
+// forward({
+//   from: messageReply,
+//   to: checkHasCasinoGame,
+// });
 
-forward({
-  from: canNotSendCasino,
-  to: removeMessageFx.prepend<{ params: TG["message"] }>(
-    ({ params }) => params
-  ),
-});
+// const casinoGame = guard({
+//   source: checkHasCasinoGame.doneData,
+//   filter: ({ gameId }) => Boolean(gameId),
+// });
 
-runCasinoFx.use(async (message) => {
-  const startCasinoMessage = await replyToMessageFx({
-    message,
-    text: [
-      `Добро пожаловать в казино <b>${message.from.first_name || ""} ${
-        message.from.last_name || ""
-      }</b>, где ставка твой социальный рейтинг!\n`,
-      "Отправь в течении минуты реплаем к этому сообщению свою ставку в формате:",
-      "{твоя_ставка} {какой_кубик_выпадет}\n",
-      'Для примера: "40 6" - значение кубика от 1 до 6',
-      "Ставка может быть от 1 до 100, а кубик от 1 до 6\n",
-      "Если угадаешь с кубиком получишь <b>х4</b> рейтинга от своей ставки, если нет то потеряешь свой рейтинг!",
-    ].join("\n"),
-    extra: {
-      parse_mode: "HTML",
-    },
-  });
+// const prepareCasinoGame = sample({
+//   source: casinoGame,
+//   fn: ({ gameId, message }) => {
+//     // @ts-ignore
+//     const textBet: string = message.text || "";
 
-  scheduler.createNote({
-    note: "casinoGame",
-    data: {
-      messageId: startCasinoMessage.message_id,
-      userId: message.from.id,
-    },
-    timeout: WAIT_SEND_BET_CASINO,
-  });
-});
+//     const [ratingBet, diceBet] = textBet
+//       .trim()
+//       .split(" ")
+//       .filter(Boolean)
+//       .map(Number)
+//       .filter(Number)
+//       .map(Math.round);
 
-forward({
-  from: messageReply,
-  to: checkHasCasinoGame,
-});
+//     return {
+//       gameId,
+//       ratingBet,
+//       diceBet,
+//       message,
+//     };
+//   },
+// });
 
-const casinoGame = guard({
-  source: checkHasCasinoGame.doneData,
-  filter: ({ gameId }) => Boolean(gameId),
-});
+// split({
+//   source: prepareCasinoGame,
+//   match: {
+//     invalidNumbers: ({ ratingBet, diceBet }) => {
+//       return (
+//         !ratingBet ||
+//         !diceBet ||
+//         ratingBet <= 0 ||
+//         ratingBet > 100 ||
+//         diceBet <= 0 ||
+//         diceBet > 6
+//       );
+//     },
+//   },
+//   cases: {
+//     invalidNumbers: replyToMessageFx.prepend(
+//       ({ message }: { message: TG["message"] }) => ({
+//         message,
+//         text: "Рейтинг должен быть от 1 до 100, значение кубика от 1 до 6",
+//       })
+//     ),
+//     __: rollDiceCasinoGameFx,
+//   },
+// });
 
-const prepareCasinoGame = sample({
-  source: casinoGame,
-  fn: ({ gameId, message }) => {
-    // @ts-ignore
-    const textBet: string = message.text || "";
+// rollDiceCasinoGameFx.use(async ({ gameId, ratingBet, diceBet, message }) => {
+//   if (gameId) {
+//     await removeSchedulerTaskByIdFx(gameId);
+//   }
 
-    const [ratingBet, diceBet] = textBet
-      .trim()
-      .split(" ")
-      .filter(Boolean)
-      .map(Number)
-      .filter(Number)
-      .map(Math.round);
+//   const chat = await chatRepository.getChatByIdFx(message.chat.id);
+//   const user = await UserModel.findOne({
+//     userId: message.from!.id,
+//     chat: chat?._id,
+//   });
 
-    return {
-      gameId,
-      ratingBet,
-      diceBet,
-      message,
-    };
-  },
-});
+//   const [diceResult] = await rollDiceAndReturnValueFx({
+//     message,
+//     extra: {
+//       reply_to_message_id: message.message_id,
+//     },
+//   });
 
-split({
-  source: prepareCasinoGame,
-  match: {
-    invalidNumbers: ({ ratingBet, diceBet }) => {
-      return (
-        !ratingBet ||
-        !diceBet ||
-        ratingBet <= 0 ||
-        ratingBet > 100 ||
-        diceBet <= 0 ||
-        diceBet > 6
-      );
-    },
-  },
-  cases: {
-    invalidNumbers: replyToMessageFx.prepend(
-      ({ message }: { message: TG["message"] }) => ({
-        message,
-        text: "Рейтинг должен быть от 1 до 100, значение кубика от 1 до 6",
-      })
-    ),
-    __: rollDiceCasinoGameFx,
-  },
-});
+//   await delay(3000);
 
-rollDiceCasinoGameFx.use(async ({ gameId, ratingBet, diceBet, message }) => {
-  if (gameId) {
-    await removeSchedulerTaskByIdFx(gameId);
-  }
+//   if (diceResult === diceBet) {
+//     await replyToMessageFx({
+//       message,
+//       text: `Джекпот! Забирай свои ${ratingBet * 4} рейтинга 🎉`,
+//     });
 
-  const chat = await chatRepository.getChatByIdFx(message.chat.id);
-  const user = await UserModel.findOne({
-    userId: message.from.id,
-    chat: chat?._id,
-  });
+//     if (user) {
+//       console.log("Casino before win:", user.rating, user.name);
+//       await user.updateOne({
+//         rating: user.rating + ratingBet * 4,
+//       });
 
-  const [diceResult] = await rollDiceAndReturnValueFx({
-    message,
-    extra: {
-      reply_to_message_id: message.message_id,
-    },
-  });
+//       const updatedUser = await UserModel.findById(user._id);
+//       console.log("Casino after win:", updatedUser?.rating, user.name);
+//     }
 
-  await delay(3000);
+//     return;
+//   }
 
-  if (diceResult === diceBet) {
-    await replyToMessageFx({
-      message,
-      text: `Джекпот! Забирай свои ${ratingBet * 4} рейтинга 🎉`,
-    });
+//   if (user) {
+//     console.log("Casino before win:", user.rating, user.name);
+//     await user.updateOne({
+//       rating: user.rating - ratingBet,
+//     });
 
-    if (user) {
-      console.log("Casino before win:", user.rating, user.name);
-      await user.updateOne({
-        rating: user.rating + ratingBet * 4,
-      });
+//     const updatedUser = await UserModel.findById(user._id);
+//     console.log("Casino after win:", updatedUser?.rating, user.name);
+//   }
 
-      const updatedUser = await UserModel.findById(user._id);
-      console.log("Casino after win:", updatedUser?.rating, user.name);
-    }
-
-    return;
-  }
-
-  if (user) {
-    console.log("Casino before win:", user.rating, user.name);
-    await user.updateOne({
-      rating: user.rating - ratingBet,
-    });
-
-    const updatedUser = await UserModel.findById(user._id);
-    console.log("Casino after win:", updatedUser?.rating, user.name);
-  }
-
-  await replyToMessageFx({
-    message,
-    text: `Не повезло! Ты потерял свои ${ratingBet} рейтинга, приходи в следующий раз, может повезет 🍀`,
-  });
-});
+//   await replyToMessageFx({
+//     message,
+//     text: `Не повезло! Ты потерял свои ${ratingBet} рейтинга, приходи в следующий раз, может повезет 🍀`,
+//   });
+// });

@@ -1,7 +1,5 @@
 import { createEffect, createEvent } from "effector-root";
-
 import { ExtraDice } from "telegraf/typings/telegram-types";
-import { Message } from "typegram";
 
 import { TG } from "../types";
 
@@ -25,5 +23,5 @@ export const rollDiceCasinoGameFx = createEffect<
 
 export const rollDiceAndReturnValueFx = createEffect<
   { message: TG["message"]; extra?: ExtraDice },
-  [number, Message.DiceMessage]
+  [number, TG["message"]]
 >();

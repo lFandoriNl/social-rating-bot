@@ -57,3 +57,25 @@ export async function replyToMessage(
     });
   } catch (error) {}
 }
+
+export async function removeMessage(message: TG["message"]) {
+  try {
+    return await bot.telegram.deleteMessage(
+      message.chat.id,
+      message.message_id
+    );
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export function removeMessageAfterTimeout(message: TG["message"], ms: number) {
+  scheduler.createTask({
+    task: "removeMessage",
+    data: {
+      chatId: message.chat.id,
+      messageId: message.message_id,
+    },
+    timeout: ms,
+  });
+}
