@@ -143,11 +143,11 @@ export function messageInit() {
         return true;
       }
 
-      if (msg.chat.type === "private") {
-        return false;
-      }
+      // if (msg.chat.type === "private") {
+      //   return false;
+      // }
 
-      return !msg.reply_to_message.from?.is_bot;
+      return false;
     })
   );
 
