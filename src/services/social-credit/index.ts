@@ -97,12 +97,10 @@ export async function getTopUsersByRating({ chatId }: { chatId: number }) {
       rating: "desc",
     });
 
-    return users
-      .filter((user) => user.rating !== 0)
-      .map((user) => ({
-        name: user.name,
-        rank: getRangByRating(user.rating).text,
-        rating: user.rating,
-      }));
+    return users.map((user) => ({
+      name: user.name,
+      rank: getRangByRating(user.rating).text,
+      rating: user.rating,
+    }));
   } catch (error) {}
 }
